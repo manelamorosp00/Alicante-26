@@ -289,7 +289,8 @@ export default function App() {
       });
       setWheels(list);
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'wheels');
+      // Don't rethrow — rethrowing from onSnapshot callbacks causes uncaught errors
+      console.warn('[wheels] Firestore error (check rules):', error.message);
     });
 
     return () => {
