@@ -410,6 +410,16 @@ export default function App() {
     }
   };
 
+  const handleAddMember = async (member: Omit<Member, 'id'>) => {
+    const id = 'member_' + Date.now();
+    try {
+      await setDoc(doc(db, 'members', id), { ...member, id });
+      setActiveMemberId(id);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, `members/${id}`);
+    }
+  };
+
   // Handlers for registering custom new characters
   const handleRegisterMember = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1455,6 +1465,7 @@ export default function App() {
                 activeMemberId={activeMemberId}
                 onSelectMember={(id) => setActiveMemberId(id)}
                 onUpdateMember={handleUpdateMember}
+                onAddMember={handleAddMember}
               />
             </div>
           )}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Language, Member } from '../types';
 import { t } from '../translations';
-import { Shield, Sparkles, UserCheck, Edit2, Check } from 'lucide-react';
+import { Shield, Sparkles, UserCheck, Edit2, Check, UserPlus, X } from 'lucide-react';
 
 interface ProfileManagerProps {
   language: Language;
@@ -9,6 +9,7 @@ interface ProfileManagerProps {
   activeMemberId: string;
   onSelectMember: (id: string) => void;
   onUpdateMember: (id: string, updated: Partial<Member>) => void;
+  onAddMember: (member: Omit<Member, 'id'>) => Promise<void>;
 }
 
 export const ProfileManager: React.FC<ProfileManagerProps> = ({
@@ -17,13 +18,22 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   activeMemberId,
   onSelectMember,
   onUpdateMember,
+  onAddMember,
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
-  
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addSaving, setAddSaving] = useState(false);
+
   // Edit Form State
   const [editNickname, setEditNickname] = useState('');
   const [editRole, setEditRole] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
+
+  // Add Form State
+  const [addName, setAddName] = useState('');
+  const [addNickname, setAddNickname] = useState('');
+  const [addAvatar, setAddAvatar] = useState('🌴');
+  const [addRole, setAddRole] = useState('rolePlanner');
 
   const availableRoles = [
     'rolePlanner',
@@ -56,6 +66,28 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
       avatarUrl: editAvatar,
     });
     setEditingId(null);
+  };
+
+  const handleAddSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addName.trim()) return;
+    setAddSaving(true);
+    try {
+      await onAddMember({
+        name: addName.trim(),
+        nickname: addNickname.trim() || addName.trim(),
+        avatarUrl: addAvatar,
+        role: addRole,
+        color: 'from-art-yellow to-art-orange',
+      });
+      setShowAddForm(false);
+      setAddName('');
+      setAddNickname('');
+      setAddAvatar('🌴');
+      setAddRole('rolePlanner');
+    } finally {
+      setAddSaving(false);
+    }
   };
 
   return (
@@ -248,6 +280,119 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
             </div>
           );
         })}
+
+        {/* ── Add Member Card ─────────────────────────────────── */}
+        {!showAddForm ? (
+          <button
+            type="button"
+            onClick={() => setShowAddForm(true)}
+            className="rounded-none border-2 border-dashed border-[#2d2d2d]/40 p-5 flex flex-col items-center justify-center gap-3 text-art-text/50 hover:text-art-text hover:border-[#2d2d2d] hover:bg-[#fdfaf2] transition-all cursor-pointer min-h-[180px] group"
+          >
+            <div className="w-12 h-12 rounded-full border-2 border-dashed border-current flex items-center justify-center group-hover:bg-art-orange/10 transition-all">
+              <UserPlus className="w-5 h-5" />
+            </div>
+            <span className="font-black uppercase text-xs tracking-wider">
+              {language === 'ca' ? 'Afegir Membre' : language === 'en' ? 'Add Member' : 'Añadí Miembro'}
+            </span>
+          </button>
+        ) : (
+          <form
+            onSubmit={handleAddSubmit}
+            className="rounded-none border-2 border-[#2d2d2d] p-5 flex flex-col gap-3.5 bg-white shadow-[4px_4px_0px_0px_#FF6321] relative"
+          >
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setShowAddForm(false)}
+              className="absolute top-3 right-3 p-1 text-art-text/40 hover:text-art-text cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <p className="font-black uppercase text-xs text-art-orange tracking-wider flex items-center gap-1.5">
+              <UserPlus className="w-4 h-4" />
+              {language === 'ca' ? 'Nou Membre' : language === 'en' ? 'New Member' : 'Nuevo Miembro'}
+            </p>
+
+            {/* Real name */}
+            <div>
+              <label className="block font-black uppercase text-art-text/60 text-[10px] mb-1">
+                {language === 'ca' ? 'Nom real*' : language === 'en' ? 'Real name*' : 'Nombre real*'}
+              </label>
+              <input
+                type="text"
+                required
+                value={addName}
+                onChange={(e) => setAddName(e.target.value)}
+                placeholder={language === 'ca' ? 'ex: Maria' : 'e.g. Maria'}
+                className="w-full px-3 py-2 border-2 border-[#2d2d2d] rounded-none bg-slate-50 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-art-orange"
+              />
+            </div>
+
+            {/* Nickname */}
+            <div>
+              <label className="block font-black uppercase text-art-text/60 text-[10px] mb-1">
+                {language === 'ca' ? 'Sobrenom' : language === 'en' ? 'Nickname' : 'Mote'}
+              </label>
+              <input
+                type="text"
+                value={addNickname}
+                onChange={(e) => setAddNickname(e.target.value)}
+                placeholder={language === 'ca' ? 'ex: La Reina del Caos' : 'e.g. Queen of Chaos'}
+                className="w-full px-3 py-2 border-2 border-[#2d2d2d] rounded-none bg-slate-50 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-art-orange"
+              />
+            </div>
+
+            {/* Avatar picker */}
+            <div>
+              <span className="block font-black uppercase text-art-text/60 text-[10px] mb-1">
+                {language === 'ca' ? 'Avatar' : language === 'en' ? 'Avatar' : 'Avatar'}:
+                <span className="ml-2 text-lg">{addAvatar}</span>
+              </span>
+              <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto p-2 bg-[#fdfaf2] border-2 border-[#2d2d2d] rounded-none">
+                {cuteEmojis.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => setAddAvatar(emoji)}
+                    className={`w-7 h-7 flex items-center justify-center text-base rounded-none transition-all border ${addAvatar === emoji ? 'bg-art-orange border-2 border-[#2d2d2d] scale-110' : 'bg-white hover:bg-slate-100 border-slate-200'}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Role */}
+            <div>
+              <label className="block font-black uppercase text-art-text/60 text-[10px] mb-1">
+                {t('roleField', language)}:
+              </label>
+              <select
+                value={addRole}
+                onChange={(e) => setAddRole(e.target.value)}
+                className="w-full px-2 py-2 border-2 border-[#2d2d2d] rounded-none bg-slate-50 text-xs font-bold focus:outline-none"
+              >
+                {availableRoles.map(role => (
+                  <option key={role} value={role}>{t(role, language)}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={addSaving || !addName.trim()}
+              className="w-full py-2.5 border-2 border-[#2d2d2d] bg-art-orange text-white font-black uppercase text-xs shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-y-[-1px] hover:shadow-[3px_5px_0px_0px_#2d2d2d] active:translate-y-0 transition-all cursor-pointer rounded-none disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 flex items-center justify-center gap-2"
+            >
+              {addSaving ? '⏳' : <UserPlus className="w-4 h-4" />}
+              {addSaving
+                ? (language === 'ca' ? 'Guardant...' : language === 'en' ? 'Saving...' : 'Guardando...')
+                : (language === 'ca' ? 'Afegir al grup' : language === 'en' ? 'Add to group' : 'Añadí ar grupo')}
+            </button>
+          </form>
+        )}
+
       </div>
 
     </div>
