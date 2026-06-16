@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Language, Member, PlanItem, PLAN_CATEGORIES } from '../types';
 import { t } from '../translations';
-import { Calendar, Clock, MapPin, Heart, Plus, Compass, Star, Flame, Check, Sparkles, Euro, BookmarkCheck } from 'lucide-react';
+import { Calendar, Clock, MapPin, Heart, Plus, Compass, Star, Flame, Check, Sparkles, Euro, BookmarkCheck , Trash2 } from 'lucide-react';
 
 interface ItineraryTimelineProps {
   language: Language;
@@ -11,6 +11,7 @@ interface ItineraryTimelineProps {
   onAddPlan: (plan: Omit<PlanItem, 'id' | 'votes'>) => void;
   onVotePlan: (id: string) => void;
   onToggleFavoritePlan: (id: string) => void;
+  onDeletePlan: (id: string) => void;
   /** When set, auto-opens the add form pre-filled with these values */
   prefillPlan?: Partial<PlanItem>;
   /** Called after the prefill is consumed (to clear it in parent) */
@@ -133,6 +134,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
   onAddPlan,
   onVotePlan,
   onToggleFavoritePlan,
+  onDeletePlan,
   prefillPlan,
   onPrefillConsumed,
 }) => {
@@ -712,6 +714,16 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                             title={language === 'ca' ? 'Marcar favorit' : language === 'en' ? 'Toggle favorite' : 'Faborito'}
                           >
                             <Star className={`w-4 h-4 ${isFavorited ? 'fill-art-yellow text-art-yellow' : 'text-art-text'}`} />
+                          </button>
+
+                          {/* Delete plan */}
+                          <button
+                            type="button"
+                            onClick={() => { if (window.confirm(language === 'ca' ? 'Eliminar aquest pla?' : language === 'en' ? 'Delete this plan?' : '¿Borrar este planazo?')) onDeletePlan(plan.id); }}
+                            className="p-2 border-2 border-[#2d2d2d] bg-white text-art-text/40 hover:text-red-500 hover:border-red-400 hover:bg-red-50 flex items-center justify-center transition-all cursor-pointer select-none shadow-[2px_2px_0px_0px_#2d2d2d]"
+                            title={language === 'ca' ? 'Eliminar pla' : language === 'en' ? 'Delete plan' : 'Eliminar'}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
 

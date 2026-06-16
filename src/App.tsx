@@ -254,21 +254,13 @@ export default function App() {
       console.warn('[expenses] Firestore error (check rules/auth):', error.message);
     });
 
-    // 3. Sync Plans
+    // 3. Sync Plans (no seeding — itinerary starts empty, users add their own plans)
     const unsubPlans = onSnapshot(collection(db, 'plans'), (snapshot) => {
-      if (snapshot.empty) {
-        defaultPlans.forEach((p) => {
-          setDoc(doc(db, 'plans', p.id), p).catch((err) => {
-            console.error('Error seeding initial plan:', err);
-          });
-        });
-      } else {
-        const list: PlanItem[] = [];
-        snapshot.forEach((d) => {
-          list.push(d.data() as PlanItem);
-        });
-        setPlans(list);
-      }
+      const list: PlanItem[] = [];
+      snapshot.forEach((d) => {
+        list.push(d.data() as PlanItem);
+      });
+      setPlans(list);
     }, (error) => {
       console.warn('[plans] Firestore error (check rules/auth):', error.message);
     });
@@ -402,6 +394,14 @@ export default function App() {
       await updateDoc(doc(db, 'plans', id), { favorites: newFavs });
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, `plans/${id}`);
+    }
+  };
+
+  const handleDeletePlan = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'plans', id));
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `plans/${id}`);
     }
   };
 
@@ -1156,6 +1156,7 @@ export default function App() {
                 onAddPlan={handleAddPlan}
                 onVotePlan={handleVotePlan}
                 onToggleFavoritePlan={handleToggleFavoritePlan}
+                onDeletePlan={handleDeletePlan}
                 prefillPlan={prefillPlan}
                 onPrefillConsumed={() => setPrefillPlan(undefined)}
               />
