@@ -8,7 +8,7 @@ interface ExpenseSplitterProps {
   members: Member[];
   expenses: Expense[];
   activeMemberId: string;
-  onAddExpense: (expense: Omit<Expense, 'id'>) => void;
+  onAddExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
   onDeleteExpense: (id: string) => void;
   onResetExpenses: () => void;
 }
@@ -27,6 +27,8 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
   const [payer, setPayer] = useState(activeMemberId || (members[0]?.id || ''));
   const [useCustomSplit, setUseCustomSplit] = useState(false);
   const [splitBetween, setSplitBetween] = useState<string[]>(members.map(m => m.id));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Sync payer with active member if it changes
   React.useEffect(() => {
@@ -35,26 +37,43 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
     }
   }, [activeMemberId]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim() || !amount || parseFloat(amount) <= 0) return;
+    if (isSubmitting) return;
+
+    setSubmitError(null);
+    setIsSubmitting(true);
 
     // If custom split is not checked, we split between everyone
     const splitIds = useCustomSplit ? splitBetween : [];
 
-    onAddExpense({
-      description: description.trim(),
-      amount: parseFloat(parseFloat(amount).toFixed(2)),
-      paidBy: payer,
-      splitBetween: splitIds,
-      date: new Date().toISOString().split('T')[0],
-    });
+    try {
+      await onAddExpense({
+        description: description.trim(),
+        amount: parseFloat(parseFloat(amount).toFixed(2)),
+        paidBy: payer || (members[0]?.id ?? ''),
+        splitBetween: splitIds,
+        date: new Date().toISOString().split('T')[0],
+      });
 
-    setDescription('');
-    setAmount('');
-    setUseCustomSplit(false);
-    // Reset split list to everyone
-    setSplitBetween(members.map(m => m.id));
+      // Only clear form on success
+      setDescription('');
+      setAmount('');
+      setUseCustomSplit(false);
+      setSplitBetween(members.map(m => m.id));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      // Show a friendly error; the raw Firestore error may be JSON
+      try {
+        const parsed = JSON.parse(msg);
+        setSubmitError(`Error: ${parsed.error ?? msg}`);
+      } catch {
+        setSubmitError(`Error desant la despesa: ${msg}`);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleToggleSplitMember = (memberId: string) => {
@@ -321,12 +340,23 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
               )}
             </div>
 
+            {submitError && (
+              <div className="flex items-start gap-2 p-3 bg-rose-50 border-2 border-rose-400 text-rose-700 text-xs font-medium rounded-none">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{submitError}</span>
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full mt-2 py-3.5 px-4 border-2 border-[#2d2d2d] text-art-text font-display text-xs font-black uppercase tracking-wider bg-art-yellow hover:bg-art-yellow/85 shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-y-[-1px] flex items-center justify-center gap-2 transition-all cursor-pointer"
+              disabled={isSubmitting}
+              className={`w-full mt-2 py-3.5 px-4 border-2 border-[#2d2d2d] text-art-text font-display text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#2d2d2d] flex items-center justify-center gap-2 transition-all
+                ${isSubmitting ? 'bg-art-yellow/50 cursor-not-allowed' : 'bg-art-yellow hover:bg-art-yellow/85 hover:translate-y-[-1px] cursor-pointer'}`}
             >
               <Plus className="w-4 h-4 stroke-[3px]" />
-              {t('addExpenseBtn', language)}
+              {isSubmitting
+                ? (language === 'ca' ? 'Desant...' : language === 'en' ? 'Saving...' : 'Guardando...')
+                : t('addExpenseBtn', language)}
             </button>
           </form>
         </div>
@@ -436,36 +466,4 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                         {hasCustomSplit && (
                           <>
                             <span>•</span>
-                            <span className="text-white font-bold uppercase tracking-wider text-[9px] bg-art-blue px-1.5 py-0.5 rounded-none">
-                              {language === 'ca' ? 'Repartit' : language === 'en' ? 'Custom' : 'Farándula'} ({exp.splitBetween.length} pax)
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono font-black text-art-text text-sm whitespace-nowrap">
-                        {exp.amount.toFixed(2)} €
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => onDeleteExpense(exp.id)}
-                        className="text-art-text/30 hover:text-rose-600 p-1.5 border border-transparent hover:border-[#2d2d2d] hover:bg-rose-50 transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
-                        title="Delete expense"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-      </div>
-
-    </div>
-  );
-};
+                            <span className="text-white font-bold uppercase tracking-wider text

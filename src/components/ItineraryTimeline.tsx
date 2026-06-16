@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Language, Member, PlanItem } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Language, Member, PlanItem, PLAN_CATEGORIES } from '../types';
 import { t } from '../translations';
-import { Calendar, Clock, MapPin, Heart, Plus, Compass, Star, Flame, Check, Sparkles } from 'lucide-react';
+import { Calendar, Clock, MapPin, Heart, Plus, Compass, Star, Flame, Check, Sparkles, Euro, BookmarkCheck } from 'lucide-react';
 
 interface ItineraryTimelineProps {
   language: Language;
@@ -11,6 +11,10 @@ interface ItineraryTimelineProps {
   onAddPlan: (plan: Omit<PlanItem, 'id' | 'votes'>) => void;
   onVotePlan: (id: string) => void;
   onToggleFavoritePlan: (id: string) => void;
+  /** When set, auto-opens the add form pre-filled with these values */
+  prefillPlan?: Partial<PlanItem>;
+  /** Called after the prefill is consumed (to clear it in parent) */
+  onPrefillConsumed?: () => void;
 }
 
 interface HogueraTemplateEvent {
@@ -129,8 +133,11 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
   onAddPlan,
   onVotePlan,
   onToggleFavoritePlan,
+  prefillPlan,
+  onPrefillConsumed,
 }) => {
   const [selectedDay, setSelectedDay] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<'calendar' | 'hogueras'>('calendar');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -141,6 +148,26 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
   const [date, setDate] = useState('2026-06-22');
   const [time, setTime] = useState('12:05');
   const [location, setLocation] = useState('');
+  const [category, setCategory] = useState('');
+  const [estimatedPrice, setEstimatedPrice] = useState('');
+  const [requiresReservation, setRequiresReservation] = useState(false);
+
+  // When prefillPlan arrives, open the form pre-populated
+  useEffect(() => {
+    if (prefillPlan) {
+      setTitle(prefillPlan.title ?? '');
+      setDescription(prefillPlan.description ?? '');
+      setDate(prefillPlan.date ?? '2026-06-22');
+      setTime(prefillPlan.time ?? '20:00');
+      setLocation(prefillPlan.location ?? '');
+      setCategory(prefillPlan.category ?? '');
+      setEstimatedPrice(prefillPlan.estimatedPrice ?? '');
+      setRequiresReservation(prefillPlan.requiresReservation ?? false);
+      setActiveSubTab('calendar');
+      setShowAddForm(true);
+      onPrefillConsumed?.();
+    }
+  }, [prefillPlan]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const tripDays = [
     { date: '2026-06-22', key: 'dayCa', label: 'Dll 22', full: 'Dilluns 22/06' },
@@ -195,7 +222,27 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
       ca: "🌴 Foguera Oficial",
       en: "🌴 Official Hoguera",
       an: "🌴 Fiesta Oficial",
-    }
+    },
+    categoryLabel: {
+      ca: "Categoria",
+      en: "Category",
+      an: "Categoría",
+    },
+    priceLabel: {
+      ca: "Preu estimat (opcional)",
+      en: "Estimated price (optional)",
+      an: "Precio estimao (opsional)",
+    },
+    reservationLabel: {
+      ca: "Requereix reserva prèvia",
+      en: "Requires reservation",
+      an: "Necesita rese'va",
+    },
+    filterCategory: {
+      ca: "Totes les Categories",
+      en: "All Categories",
+      an: "To' lo' Tipo'",
+    },
   };
 
   const getDayName = (dateStr: string) => {
@@ -214,6 +261,10 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
 
   const baseFiltered = plans.filter(p => {
     if (selectedDay !== 'all' && p.date !== selectedDay) return false;
+    if (selectedCategory !== 'all') {
+      const cat = PLAN_CATEGORIES.find(c => c.id === selectedCategory);
+      if (cat && p.category !== cat.label) return false;
+    }
     if (showFavoritesOnly) {
       const favList = p.favorites || [];
       return favList.includes(activeMemberId);
@@ -236,18 +287,24 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
       date,
       time,
       location: location.trim(),
+      ...(category ? { category } : {}),
+      ...(estimatedPrice.trim() ? { estimatedPrice: estimatedPrice.trim() } : {}),
+      ...(requiresReservation ? { requiresReservation: true } : {}),
     });
 
     setTitle('');
     setDescription('');
     setLocation('');
+    setCategory('');
+    setEstimatedPrice('');
+    setRequiresReservation(false);
     setShowAddForm(false);
   };
 
   const handlesImportHoguera = (template: HogueraTemplateEvent) => {
     const titleText = template.title[language] || template.title['ca'];
     const descText = template.description[language] || template.description['ca'];
-    
+
     // Check if duplicate exists
     const duplicate = plans.some(p => p.title === titleText);
     if (duplicate) return;
@@ -259,12 +316,13 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
       time: template.time,
       location: template.location,
       isHogueraEvent: true,
+      category: '🔥 Fogueres',
     });
   };
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-6 py-2">
-      
+
       {/* Sub-Tabs Selector Bar */}
       <div className="flex border-b-4 border-[#2d2d2d] bg-white gap-2 p-1 select-none shadow-[2px_2px_0px_0px_#2d2d2d]">
         <button
@@ -296,54 +354,78 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
       {activeSubTab === 'calendar' && (
         <>
           {/* Calendar top controls */}
-          <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-            {/* Day Toggles */}
-            <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#fdfaf2] w-full md:w-auto">
-              <button
-                key="all"
-                type="button"
-                onClick={() => setSelectedDay('all')}
-                className={`px-3 py-2 border-2 border-[#2d2d2d] text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap select-none cursor-pointer ${selectedDay === 'all' ? 'bg-[#2d2d2d] text-white shadow-[2px_2px_0px_0px_#2d2d2d]' : 'bg-white text-art-text hover:bg-[#fdfaf2] hover:translate-y-[-1px]'}`}
-              >
-                {language === 'ca' ? 'Tots els dies' : language === 'en' ? 'All Days' : 'To\' lo\' día\''}
-              </button>
-              {tripDays.map((td) => (
+          <div className="flex flex-col gap-3">
+            {/* Row 1: Day filters + action buttons */}
+            <div className="flex flex-col md:flex-row gap-3 justify-between items-start md:items-center">
+              {/* Day Toggles */}
+              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#fdfaf2] w-full md:w-auto">
                 <button
-                  key={td.date}
+                  key="all"
                   type="button"
-                  onClick={() => setSelectedDay(td.date)}
-                  className={`px-3 py-2 border-2 border-[#2d2d2d] text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap select-none cursor-pointer ${selectedDay === td.date ? 'bg-art-orange text-white shadow-[2px_2px_0px_0px_#2d2d2d]' : 'bg-white text-art-text hover:bg-[#fdfaf2] hover:translate-y-[-1px]'}`}
+                  onClick={() => setSelectedDay('all')}
+                  className={`px-3 py-2 border-2 border-[#2d2d2d] text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap select-none cursor-pointer ${selectedDay === 'all' ? 'bg-[#2d2d2d] text-white shadow-[2px_2px_0px_0px_#2d2d2d]' : 'bg-white text-art-text hover:bg-[#fdfaf2] hover:translate-y-[-1px]'}`}
                 >
-                  {td.label}
+                  {language === 'ca' ? 'Tots els dies' : language === 'en' ? 'All Days' : 'To\' lo\' día\''}
                 </button>
-              ))}
+                {tripDays.map((td) => (
+                  <button
+                    key={td.date}
+                    type="button"
+                    onClick={() => setSelectedDay(td.date)}
+                    className={`px-3 py-2 border-2 border-[#2d2d2d] text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap select-none cursor-pointer ${selectedDay === td.date ? 'bg-art-orange text-white shadow-[2px_2px_0px_0px_#2d2d2d]' : 'bg-white text-art-text hover:bg-[#fdfaf2] hover:translate-y-[-1px]'}`}
+                  >
+                    {td.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Right Action buttons */}
+              <div className="flex items-center gap-2.5 w-full md:w-auto">
+                {/* Only Favorites toggler */}
+                <button
+                  type="button"
+                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                  className={`flex-1 md:flex-none py-2 px-3 border-2 border-[#2d2d2d] text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_0px_#2d2d2d] ${
+                    showFavoritesOnly
+                      ? 'bg-art-yellow text-art-text translate-y-[1px]'
+                      : 'bg-white text-art-text hover:bg-art-bg'
+                  }`}
+                >
+                  <Star className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-art-text text-art-text' : 'text-art-text'}`} />
+                  <span>{localT.favoritesFilter[language]}</span>
+                </button>
+
+                {/* Add plan button */}
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="flex-1 md:flex-none py-2 px-4 border-2 border-[#2d2d2d] text-art-text font-display text-xs font-black uppercase tracking-wider bg-art-yellow hover:bg-art-yellow/85 shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-y-[-1px] flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none"
+                >
+                  <Plus className="w-4 h-4 stroke-[3px]" />
+                  {t('addPlanBtn', language)}
+                </button>
+              </div>
             </div>
 
-            {/* Right Action buttons (Filter Favorites + Add Custom Plan) */}
-            <div className="flex items-center gap-2.5 w-full md:w-auto mt-2 md:mt-0">
-              {/* Only Favorites toggler badge */}
+            {/* Row 2: Category filter chips */}
+            <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto">
               <button
                 type="button"
-                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                className={`flex-1 md:flex-none py-2 px-3 border-2 border-[#2d2d2d] text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_0px_#2d2d2d] ${
-                  showFavoritesOnly
-                    ? 'bg-art-yellow text-art-text translate-y-[1px]'
-                    : 'bg-white text-art-text hover:bg-art-bg'
-                }`}
+                onClick={() => setSelectedCategory('all')}
+                className={`px-3 py-1.5 border-2 border-[#2d2d2d] text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap select-none cursor-pointer ${selectedCategory === 'all' ? 'bg-[#2d2d2d] text-white' : 'bg-white text-art-text hover:bg-[#fdfaf2]'}`}
               >
-                <Star className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-art-text text-art-text' : 'text-art-text'}`} />
-                <span>{localT.favoritesFilter[language]}</span>
+                {localT.filterCategory[language]}
               </button>
-
-              {/* Add plan button */}
-              <button
-                type="button"
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="flex-1 md:flex-none py-2 px-4 border-2 border-[#2d2d2d] text-art-text font-display text-xs font-black uppercase tracking-wider bg-art-yellow hover:bg-art-yellow/85 shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-y-[-1px] flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none"
-              >
-                <Plus className="w-4 h-4 stroke-[3px]" />
-                {t('addPlanBtn', language)}
-              </button>
+              {PLAN_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCategory(selectedCategory === cat.id ? 'all' : cat.id)}
+                  className={`px-3 py-1.5 border-2 border-[#2d2d2d] text-xs font-bold transition-all whitespace-nowrap select-none cursor-pointer ${selectedCategory === cat.id ? 'bg-art-orange text-white shadow-[2px_2px_0px_0px_#2d2d2d]' : 'bg-white text-art-text hover:bg-[#fdfaf2]'}`}
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -384,6 +466,40 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                     placeholder={language === 'ca' ? 'Explica la idea de forma divertida...' : language === 'en' ? 'Explain what we will do...' : 'Suelta la película...'}
                     className="w-full px-4 py-2.5 border-2 border-[#2d2d2d] bg-white font-medium focus:bg-art-bg/20 focus:outline-hidden"
                   />
+                </div>
+
+                {/* Category + Price row */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="plan-category" className="block text-xs font-black uppercase tracking-wider text-art-text/60 mb-1">
+                      {localT.categoryLabel[language]}
+                    </label>
+                    <select
+                      id="plan-category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full px-3 py-2.5 border-2 border-[#2d2d2d] bg-white font-bold focus:outline-hidden cursor-pointer text-sm"
+                    >
+                      <option value="">— Sense categoria</option>
+                      {PLAN_CATEGORIES.map(cat => (
+                        <option key={cat.id} value={cat.label}>{cat.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="plan-price" className="block text-xs font-black uppercase tracking-wider text-art-text/60 mb-1">
+                      {localT.priceLabel[language]}
+                    </label>
+                    <input
+                      id="plan-price"
+                      type="text"
+                      value={estimatedPrice}
+                      onChange={(e) => setEstimatedPrice(e.target.value)}
+                      placeholder="ex: 15€/pp, 30€, Gratis"
+                      className="w-full px-3 py-2.5 border-2 border-[#2d2d2d] bg-white font-medium focus:outline-hidden"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -435,6 +551,26 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                   />
                 </div>
 
+                {/* Reservation checkbox */}
+                <label className="flex items-center gap-3 cursor-pointer select-none group">
+                  <div
+                    className={`w-5 h-5 border-2 border-[#2d2d2d] flex items-center justify-center transition-all shrink-0 ${requiresReservation ? 'bg-art-orange' : 'bg-white group-hover:bg-art-bg'}`}
+                    onClick={() => setRequiresReservation(!requiresReservation)}
+                  >
+                    {requiresReservation && <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />}
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={requiresReservation}
+                    onChange={(e) => setRequiresReservation(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <span className="text-xs font-black uppercase tracking-wider text-art-text/70">
+                    <BookmarkCheck className="w-3.5 h-3.5 inline mr-1 text-art-orange" />
+                    {localT.reservationLabel[language]}
+                  </span>
+                </label>
+
                 <div className="flex gap-2 justify-end mt-1">
                   <button
                     type="button"
@@ -461,12 +597,10 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
               <h3 className="text-art-text font-display font-black uppercase text-sm">
                 {showFavoritesOnly
                   ? (language === 'ca' ? 'No tens cap pla preferit guardat' : language === 'en' ? 'No favorite plans matching filters' : 'No tieni\' plane\' faborito\' canijo')
-                  : (language === 'ca' ? 'No hi ha cap pla el dia seleccionat' : language === 'en' ? 'No plans scheduled on this day' : '¡Tranquilos! No hay cantera de planes pa\' hoy')}
+                  : (language === 'ca' ? 'No hi ha cap pla amb els filtres seleccionats' : language === 'en' ? 'No plans match the selected filters' : '¡Tranquilos! No hay cantera de planes')}
               </h3>
               <p className="text-xs text-art-text/60 mt-1 max-w-sm font-medium">
-                {showFavoritesOnly
-                  ? (language === 'ca' ? 'Marca plans amb la icona de l\'estrella per afegir-los aquí!' : language === 'en' ? 'Click the star icon on any plan to easily toggle your personal favorites list' : 'Toca la e\'trellita de lo\' plane\' pa metérlo aquí canijo!')
-                  : (language === 'ca' ? 'Explora la pestanya "Programa de Fogueres \'26" per trobar macro-activitats properes o proposa una idea!' : language === 'en' ? 'Explore the "Hogueras \'26 Agenda" tab on top to import official plans or propopse customized ideas!' : 'Busca arsa en la çección "Programa de Fogueres \'26" o llança un planeo der bote.')}
+                {language === 'ca' ? 'Canvia el filtre de dia o categoria, o afegeix un pla nou!' : language === 'en' ? 'Try changing the day or category filter, or add a new plan!' : 'Cambia er filtro o llança un planeo der bote.'}
               </p>
             </div>
           ) : (
@@ -479,7 +613,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
 
                 return (
                   <div key={plan.id} className={`relative group p-6 bg-white border-2 border-[#2d2d2d] shadow-[4px_4px_0px_0px_#2d2d2d] hover:shadow-[6px_6px_0px_0px_#2d2d2d] hover:translate-y-[-1px] transition-all animate-fadeIn ${plan.isHogueraEvent ? 'border-l-8 border-l-art-orange' : ''}`}>
-                    
+
                     {/* Position Pointer Orb */}
                     <div className="absolute -left-[32px] top-6 w-4.5 h-4.5 rounded-full border-2 border-[#2d2d2d] bg-white group-hover:bg-art-orange transition-all flex items-center justify-center shadow-3xs">
                       <div className="w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-white animate-pulse"></div>
@@ -503,6 +637,26 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                             <span className="bg-[#fff3e0] text-art-orange border-2 border-art-orange font-mono font-black uppercase px-2 py-0.5 text-[9px] flex items-center gap-1 leading-none select-none">
                               <Flame className="w-3 h-3 text-art-orange shrink-0" />
                               {localT.importedTag[language]}
+                            </span>
+                          )}
+                          {/* Category badge */}
+                          {plan.category && (
+                            <span className="bg-white border-2 border-[#2d2d2d]/40 text-art-text/70 font-mono font-bold px-2 py-0.5 text-[9px] leading-none select-none">
+                              {plan.category}
+                            </span>
+                          )}
+                          {/* Reservation badge */}
+                          {plan.requiresReservation && (
+                            <span className="bg-amber-50 border-2 border-amber-500 text-amber-700 font-mono font-bold px-2 py-0.5 text-[9px] leading-none select-none flex items-center gap-1">
+                              <BookmarkCheck className="w-3 h-3" />
+                              {language === 'ca' ? 'Reserva' : language === 'en' ? 'Reservation' : 'Rese\'va'}
+                            </span>
+                          )}
+                          {/* Price badge */}
+                          {plan.estimatedPrice && (
+                            <span className="bg-emerald-50 border-2 border-emerald-500 text-emerald-700 font-mono font-bold px-2 py-0.5 text-[9px] leading-none select-none flex items-center gap-1">
+                              <Euro className="w-3 h-3" />
+                              {plan.estimatedPrice}
                             </span>
                           )}
                         </div>
@@ -537,8 +691,8 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                             type="button"
                             onClick={() => onVotePlan(plan.id)}
                             className={`py-2 px-3 border-2 border-[#2d2d2d] flex items-center gap-1.5 transition-all text-xs font-black uppercase tracking-wider cursor-pointer select-none ${
-                              hasVoted 
-                                ? 'bg-rose-50 text-rose-600 shadow-[2px_2px_0px_0px_#2d2d2d]' 
+                              hasVoted
+                                ? 'bg-rose-50 text-rose-600 shadow-[2px_2px_0px_0px_#2d2d2d]'
                                 : 'bg-white text-art-text hover:bg-art-bg shadow-[2px_2px_0px_0px_#2d2d2d]'
                             }`}
                           >
@@ -622,7 +776,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
       {/* RENDER TAB 2: HOGUERAS AGENDA EXPLORER */}
       {activeSubTab === 'hogueras' && (
         <div className="flex flex-col gap-6 animate-fadeIn" id="hogueras-special-agenda-view">
-          
+
           {/* Informative Header board */}
           <div className="bg-[#2d2d2d] border-2 border-[#2d2d2d] p-6 text-white shadow-[4px_4px_0px_0px_#FF6321] relative overflow-hidden flex flex-col gap-2">
             <div className="absolute right-[-10px] bottom-[-20px] w-24 h-24 text-art-orange/15 transform rotate-30 font-mono select-none pointer-events-none text-9xl">
@@ -644,7 +798,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
             {hoguerasTemplates.map((template) => {
               const titleText = template.title[language] || template.title['ca'];
               const descText = template.description[language] || template.description['ca'];
-              
+
               // Find matching imported active plan
               const importedPlan = plans.find(p => p.title === titleText);
               const isImported = !!importedPlan;
@@ -694,7 +848,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
 
                   {/* Actions area inside card */}
                   <div className="pt-3 border-t-2 border-[#2d2d2d]/10 flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center">
-                    
+
                     {/* Imported Plan status metrics */}
                     {isImported && importedPlan ? (
                       <div className="flex items-center gap-2">

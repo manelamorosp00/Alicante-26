@@ -29,7 +29,23 @@ export interface PlanItem {
   votes: string[]; // Member IDs who liked it
   favorites?: string[]; // Member IDs who favorited it
   isHogueraEvent?: boolean; // Indicates if the plan is an official Hogueras event
+  category?: string;          // e.g. '🍺 Birres', '🥘 Tapes', '⛵ Barca'...
+  estimatedPrice?: string;    // e.g. '15€/persona' (free text)
+  requiresReservation?: boolean;
 }
+
+export const PLAN_CATEGORIES = [
+  { id: 'hogueres', label: '🔥 Fogueres' },
+  { id: 'birres',   label: '🍺 Birres'   },
+  { id: 'tapes',    label: '🥘 Tapes'    },
+  { id: 'barca',    label: '⛵ Barca'    },
+  { id: 'excursio', label: '🏄 Excursió' },
+  { id: 'platja',   label: '🏖️ Platja'  },
+  { id: 'festa',    label: '🎉 Festa'    },
+  { id: 'sopar',    label: '🍽️ Sopar'   },
+  { id: 'cultura',  label: '🏛️ Cultura' },
+  { id: 'altres',   label: '🎰 Altres'   },
+] as const;
 
 export interface SightseeingItem {
   id: string;

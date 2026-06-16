@@ -15,6 +15,7 @@ import { ItineraryTimeline } from './components/ItineraryTimeline';
 import { SightseeingGrid } from './components/SightseeingGrid';
 import { ProfileManager } from './components/ProfileManager';
 import { TutorialOverlay } from './components/TutorialOverlay';
+import { Recomanacions } from './components/Recomanacions';
 import { db, auth, googleProvider } from './firebase';
 import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocs } from 'firebase/firestore';
@@ -37,7 +38,8 @@ import {
   X,
   LogIn,
   LogOut,
-  UserCheck
+  UserCheck,
+  Compass
 } from 'lucide-react';
 
 export default function App() {
@@ -65,7 +67,15 @@ export default function App() {
   const [votes, setVotes] = useState<VoteItem[]>([]);
 
   // 4. Tab selection state
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'plans' | 'sightseeing' | 'games' | 'profiles'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'plans' | 'recomanacions' | 'sightseeing' | 'games' | 'profiles'>('dashboard');
+
+  // Bridge: Recomanacions → Plans tab prefill
+  const [prefillPlan, setPrefillPlan] = useState<Partial<PlanItem> | undefined>(undefined);
+
+  const handleAddToPlanFromRec = (prefill: Partial<PlanItem>) => {
+    setPrefillPlan(prefill);
+    setActiveTab('plans');
+  };
 
   // Interactive Poll creation states inside Games Tab
   const [newPollQuestionCa, setNewPollQuestionCa] = useState('');
@@ -274,11 +284,8 @@ export default function App() {
       ...newExp,
       id,
     };
-    try {
-      await setDoc(doc(db, 'expenses', id), expense);
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, `expenses/${id}`);
-    }
+    // Let errors propagate so the form can display them
+    await setDoc(doc(db, 'expenses', id), expense);
   };
 
   const handleDeleteExpense = async (id: string) => {
@@ -692,7 +699,7 @@ export default function App() {
 
         {/* Dynamic navigation bar inside app */}
         <nav className="flex items-center gap-1.5 overflow-x-auto py-1.5 bg-[#fdfaf2] border-2 border-[#2d2d2d] rounded-none p-1.5 shadow-[4px_4px_0px_0px_#2d2d2d] max-w-full justify-start md:justify-center">
-          {(['dashboard', 'expenses', 'plans', 'sightseeing', 'games', 'profiles'] as const).map((tab) => {
+          {(['dashboard', 'expenses', 'plans', 'recomanacions', 'sightseeing', 'games', 'profiles'] as const).map((tab) => {
             const labelKey = `nav${tab.charAt(0).toUpperCase() + tab.slice(1)}`;
             const isTabSelected = activeTab === tab;
 
@@ -701,10 +708,18 @@ export default function App() {
                 case 'dashboard': return <Sunset className="w-4 h-4" />;
                 case 'expenses': return <Coins className="w-4 h-4" />;
                 case 'plans': return <Calendar className="w-4 h-4" />;
+                case 'recomanacions': return <Compass className="w-4 h-4" />;
                 case 'sightseeing': return <MapPin className="w-4 h-4" />;
                 case 'games': return <Dices className="w-4 h-4" />;
                 case 'profiles': return <Users className="w-4 h-4" />;
               }
+            };
+
+            const tabLabel = () => {
+              if (tab === 'recomanacions') {
+                return language === 'ca' ? 'Recomanacions' : language === 'en' ? 'Recommendations' : 'Recomanasione\'';
+              }
+              return t(labelKey, language);
             };
 
             return (
@@ -715,7 +730,7 @@ export default function App() {
                 className={`px-3 sm:px-4 py-2 border-2 border-[#2d2d2d] text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 select-none whitespace-nowrap cursor-pointer rounded-none ${isTabSelected ? 'bg-art-orange text-white shadow-[2px_2px_0px_0px_#2d2d2d]' : 'bg-white text-art-text hover:bg-art-bg'}`}
               >
                 {tabIcon()}
-                <span>{t(labelKey, language)}</span>
+                <span>{tabLabel()}</span>
               </button>
             );
           })}
@@ -936,6 +951,29 @@ export default function App() {
                 onAddPlan={handleAddPlan}
                 onVotePlan={handleVotePlan}
                 onToggleFavoritePlan={handleToggleFavoritePlan}
+                prefillPlan={prefillPlan}
+                onPrefillConsumed={() => setPrefillPlan(undefined)}
+              />
+            </div>
+          )}
+
+          {/* 3b. RECOMANACIONS VIEW */}
+          {activeTab === 'recomanacions' && (
+            <div className="animate-fadeIn">
+              <div className="mb-6">
+                <h2 className="font-display font-black uppercase text-xl sm:text-2xl text-art-text flex items-center gap-2">
+                  <Compass className="text-art-orange" />
+                  {language === 'ca' ? 'Recomanacions' : language === 'en' ? 'Recommendations' : 'Recomanasione\''}
+                </h2>
+                <p className="text-xs sm:text-sm text-art-text/70 mt-1">
+                  {language === 'ca' ? 'Bars, restaurants i excursions seleccionats per al viatge. Afegeix-los al pla amb un clic.'
+                    : language === 'en' ? 'Curated bars, restaurants and activities for the trip. Add them to the itinerary with one click.'
+                    : 'Bare\', re\'taurante\' y líos selesionao\' pa\' el viaje. Súmalos ar itinerario con un toque.'}
+                </p>
+              </div>
+              <Recomanacions
+                language={language}
+                onAddToPlan={handleAddToPlanFromRec}
               />
             </div>
           )}
