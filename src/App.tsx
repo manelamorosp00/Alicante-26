@@ -204,7 +204,10 @@ export default function App() {
   }, [dismissedPwaGuide]);
 
   // Synchronize Firestore subscriptions (realtime bidirectional Sync)
+  // Only start subscriptions AFTER authentication — Firestore rules require request.auth != null
   useEffect(() => {
+    if (!firebaseUser) return; // Don't subscribe before the user is authenticated
+
     // One-time migrations (run once per browser, tracked in localStorage)
     if (!localStorage.getItem('alicante_migration_jade_v1')) {
       updateDoc(doc(db, 'members', 'amiga_eva'), { name: 'Jade', nickname: 'Jade la Misteriosa' })
@@ -237,7 +240,7 @@ export default function App() {
         setMembers(list);
       }
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'members');
+      console.warn('[members] Firestore error (check rules/auth):', error.message);
     });
 
     // 2. Sync Expenses (no seeding — start empty in production)
@@ -248,7 +251,7 @@ export default function App() {
       });
       setExpenses(list);
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'expenses');
+      console.warn('[expenses] Firestore error (check rules/auth):', error.message);
     });
 
     // 3. Sync Plans
@@ -267,7 +270,7 @@ export default function App() {
         setPlans(list);
       }
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'plans');
+      console.warn('[plans] Firestore error (check rules/auth):', error.message);
     });
 
     // 4. Sync Votes / Polls (no seeding — start empty in production)
@@ -278,7 +281,7 @@ export default function App() {
       });
       setVotes(list);
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'votes');
+      console.warn('[votes] Firestore error (check rules/auth):', error.message);
     });
 
     // 5. Sync custom Wheels (no seeding — users create their own)
@@ -300,7 +303,7 @@ export default function App() {
       unsubVotes();
       unsubWheels();
     };
-  }, []);
+  }, [firebaseUser]);
 
   // Compute countdown to June 22th, 2026
   useEffect(() => {
