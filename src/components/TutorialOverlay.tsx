@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Language } from '../types';
-import { Sunset, Coins, Calendar, Dices, Users, ArrowRight, X, Check } from 'lucide-react';
+import { Sunset, Coins, Calendar, Dices, Users, ArrowRight, Check } from 'lucide-react';
 
 interface TutorialOverlayProps {
   language: Language;
@@ -8,16 +8,78 @@ interface TutorialOverlayProps {
   onFinish: () => void;
 }
 
+// Mini visual previews for each wizard step
+const ExpensePreview = () => (
+  <div className="w-full bg-[#fdfaf2] border-2 border-[#2d2d2d] p-3 text-left shadow-[3px_3px_0px_0px_#2d2d2d]">
+    <div className="flex justify-between items-start mb-2">
+      <div>
+        <p className="text-[9px] font-mono text-art-text/40 uppercase">Exemple</p>
+        <p className="text-2xl font-mono font-black text-art-orange">247.50 €</p>
+      </div>
+      <span className="text-lg">🍺</span>
+    </div>
+    <div className="flex flex-col gap-1 pt-2 border-t border-[#2d2d2d]/10">
+      {([['💃 Sally', '+42€', 'text-emerald-500'], ['🍻 Lluc', '-18€', 'text-rose-400'], ['💰 Manel', '+24€', 'text-emerald-500']] as const).map(([name, bal, col]) => (
+        <div key={name} className="flex justify-between text-[10px]">
+          <span className="font-bold text-art-text">{name}</span>
+          <span className={`font-mono font-black ${col}`}>{bal}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const PlanPreview = () => (
+  <div className="w-full bg-white border-2 border-[#2d2d2d] p-3 text-left shadow-[3px_3px_0px_0px_#2d2d2d]">
+    <div className="flex justify-between items-start mb-1">
+      <div>
+        <span className="text-[9px] font-mono bg-[#2d2d2d] text-white px-1.5 py-0.5">Dilluns 22</span>
+        <p className="text-xs font-black text-art-text mt-1 uppercase">🏖️ Platja Sant Joan</p>
+      </div>
+      <span className="text-[9px] font-mono text-art-text/40">10:30</span>
+    </div>
+    <p className="text-[10px] text-art-text/60 mb-2">Arena fina, voleibol i xiringuito de luxe.</p>
+    <div className="flex gap-1 items-center">
+      <span className="text-[10px] font-black text-art-text">👍 4</span>
+      <div className="flex gap-0.5 ml-1">
+        {['💃','🍻','💰','📸'].map(e => (
+          <span key={e} className="text-xs bg-art-orange/10 border border-art-orange/30 px-0.5">{e}</span>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+const WheelPreview = () => (
+  <div className="w-full bg-[#2d2d2d] border-2 border-[#2d2d2d] p-3 text-center shadow-[3px_3px_0px_0px_#FF6321]">
+    <p className="text-[9px] font-mono text-white/50 uppercase mb-1">La Ruleta dels Càstigs</p>
+    <p className="text-2xl mb-1">🎡</p>
+    <p className="text-[10px] font-black text-art-yellow uppercase">Pagar la propera ronda!</p>
+    <div className="flex justify-center gap-1 mt-2">
+      {['💃','🍻','🏄‍♂️','🍕'].map(e => (
+        <span key={e} className="text-xs bg-white/10 px-1 py-0.5">{e}</span>
+      ))}
+    </div>
+  </div>
+);
+
+const ProfilePreview = () => (
+  <div className="w-full bg-white border-2 border-[#2d2d2d] p-3 text-left shadow-[3px_3px_0px_0px_#2d2d2d] flex items-center gap-3">
+    <div className="w-12 h-12 border-2 border-[#2d2d2d] bg-art-orange/10 flex items-center justify-center text-2xl shrink-0">🕶️</div>
+    <div>
+      <p className="font-black text-xs text-art-text uppercase">Jade la Misteriosa</p>
+      <p className="text-[10px] text-art-text/50 font-mono mt-0.5">✓ Compte Google vinculat</p>
+      <p className="text-[10px] text-art-text/40 font-mono">🎰 Rol: Infiltrada</p>
+    </div>
+  </div>
+);
+
 interface Step {
   icon: React.ReactNode;
-  titleCa: string;
-  titleEn: string;
-  titleAn: string;
-  descCa: string;
-  descEn: string;
-  descAn: string;
-  tab?: string;
+  titleCa: string; titleEn: string; titleAn: string;
+  descCa: string; descEn: string; descAn: string;
   color: string;
+  preview: React.ReactNode;
 }
 
 const steps: Step[] = [
@@ -26,54 +88,61 @@ const steps: Step[] = [
     titleCa: 'Benvingut/da a Alacant 2026! 🌴',
     titleEn: 'Welcome to Alicante 2026! 🌴',
     titleAn: '¡Bienvenío a Alacant 2026! 🌴',
-    descCa: 'Ets el/la coordinador/a del viatge. Aquí podràs gestionar despeses, votar plans i organitzar les Hogueras amb tots els amics.',
-    descEn: 'You are the trip coordinator. Here you can manage expenses, vote on plans, and organize the Hogueras with all your friends.',
-    descAn: 'Ere\' er que manda en er viaje. Aquí podrá\' chungar lo\' bile\', votá\' plane\' y organisá la\' Hoguera\' con too el equipo.',
+    descCa: 'La teva central col·lectiva per gestionar despeses, votar plans i organitzar les Hogueras. Tot en un sol lloc.',
+    descEn: 'Your squad hub for managing expenses, voting on plans, and organizing the Hogueras. All in one place.',
+    descAn: 'Tu cuartel general pa\' organizar biles, votá plane\' y chungar la\' Hoguera\'. Too en un solo sítio.',
     color: 'text-art-orange',
+    preview: (
+      <div className="w-full bg-[#2d2d2d] border-2 border-[#2d2d2d] p-4 text-center shadow-[3px_3px_0px_0px_#FF6321]">
+        <p className="text-[9px] font-mono text-white/40 uppercase mb-1">Compte enrere</p>
+        <p className="text-3xl font-mono font-black text-art-yellow">5 dies</p>
+        <p className="text-[10px] text-white/60 mt-1">fins les Hogueras de Alacant 🔥</p>
+      </div>
+    ),
   },
   {
     icon: <Coins className="w-10 h-10" />,
     titleCa: 'Despeses compartides 💰',
     titleEn: 'Shared Expenses 💰',
     titleAn: 'Biles Compartío\' 💰',
-    descCa: 'A la pestanya "Despeses" podeu registrar qui ha pagat i quant. L\'app calcula automàticament qui deu diners a qui al final del viatge.',
-    descEn: 'In the "Expenses" tab, log who paid and how much. The app automatically calculates who owes money to whom at the end of the trip.',
-    descAn: 'En la pestaña "Biles" anotáis quién pagó y cuánto. La aplimasión calcula automáticamente quién le debe parné a quién ar final.',
-    tab: 'expenses',
+    descCa: 'Registreu qui ha pagat i quant. L\'app calcula automàticament quant deu cadascú al final del viatge.',
+    descEn: 'Log who paid and how much. The app automatically calculates who owes what at the end of the trip.',
+    descAn: 'Anotad quién pagó y cuánto. La app calcula automáticamente quién le debe parné a quién.',
     color: 'text-emerald-500',
+    preview: <ExpensePreview />,
   },
   {
     icon: <Calendar className="w-10 h-10" />,
     titleCa: 'Itinerari i Plans 📅',
     titleEn: 'Itinerary & Plans 📅',
     titleAn: 'Itinerario y Plane\' 📅',
-    descCa: 'A "Plans" trobareu l\'itinerari del viatge. Podeu votar els plans que us agraden, afegir-ne de nous i guardar-los com a favorits.',
-    descEn: 'In "Plans" you\'ll find the trip itinerary. You can vote on plans you like, add new ones, and save your favourites.',
-    descAn: 'En "Plane\'" tiéi el itinerario der viaje. Podéi votá lo\' plane\' que mo\'en, añadí uno\' nuevo\' y guardarlo\' como favoritazo\'.',
-    tab: 'plans',
+    descCa: 'Trobeu l\'itinerari, voteu els plans que us agraden i afegiu-ne de nous. Filtreu per dia i categoria.',
+    descEn: 'Browse the itinerary, vote on plans you like, and add new ones. Filter by day and category.',
+    descAn: 'Veei el itinerario, votád lo\' plane\' que mo\'en y añadíd uno\' nuevo\'.',
     color: 'text-blue-500',
+    preview: <PlanPreview />,
   },
   {
     icon: <Dices className="w-10 h-10" />,
     titleCa: 'Jocs i Votacions 🎲',
     titleEn: 'Games & Polls 🎲',
     titleAn: 'Juego\' y Votasione\' 🎲',
-    descCa: 'La Ruleta dels Càstigs decideix qui neteja, cuina o paga la propera ronda. A les Votacions podeu crear enquestes per decidir plans.',
-    descEn: 'The Punishment Wheel decides who cleans, cooks, or pays the next round. In Polls you can create surveys to decide on plans.',
-    descAn: 'La Ruleta de lo\' Castigaço\' desidí quién friega, cuina o paga la próxima ronta. En Votasione\' crearéi encuesta\' guapísima\'.',
-    tab: 'games',
+    descCa: 'La Ruleta dels Càstigs decideix qui neteja, cuina o paga la propera ronda. Creeu enquestes per decidir plans.',
+    descEn: 'The Punishment Wheel decides who cleans, cooks, or pays next round. Create polls to decide on plans.',
+    descAn: 'La Ruleta de lo\' Castigaço\' desidí quién paga. Cread encuesta\' pa\' decidí plane\'.',
     color: 'text-purple-500',
+    preview: <WheelPreview />,
   },
   {
     icon: <Users className="w-10 h-10" />,
     titleCa: 'El teu perfil 👤',
     titleEn: 'Your Profile 👤',
     titleAn: 'Tu Jeto 👤',
-    descCa: 'A "Perfils" pots editar el teu avatar, sobrenom i rol. El teu compte Google queda vinculat per sempre — la propera vegada entres automàticament.',
-    descEn: 'In "Profiles" you can edit your avatar, nickname, and role. Your Google account stays linked — next time you\'ll sign in automatically.',
-    descAn: 'En "Perfil" cambiai tu emoji, mote y cargo. Tu cuenta Google queda vinculá pa siempre — la próxima vé\' entrai solo.',
-    tab: 'profiles',
+    descCa: 'A "Perfils" pots editar el teu avatar, sobrenom i rol quan vulguis. El teu compte Google queda vinculat per sempre.',
+    descEn: 'In "Profiles" you can edit your avatar, nickname, and role anytime. Your Google account stays linked.',
+    descAn: 'En "Perfil" cambiai tu emoji, mote y cargo cuando quierái. Tu Google queda vinculao pa siempre.',
     color: 'text-fuchsia-500',
+    preview: <ProfilePreview />,
   },
 ];
 
@@ -87,7 +156,7 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ language, memb
 
   return (
     <div className="fixed inset-0 bg-black/70 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white border-4 border-[#2d2d2d] shadow-[10px_10px_0px_0px_#2d2d2d] rounded-none relative">
+      <div className="w-full max-w-sm bg-white border-4 border-[#2d2d2d] shadow-[10px_10px_0px_0px_#2d2d2d] rounded-none relative">
 
         {/* Progress bar */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#2d2d2d]/10">
@@ -97,30 +166,10 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ language, memb
           />
         </div>
 
-        {/* Skip button */}
-        <button
-          type="button"
-          onClick={onFinish}
-          className="absolute top-4 right-4 text-art-text/30 hover:text-art-text/70 transition-colors cursor-pointer"
-          title="Saltar tutorial"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <div className="p-8 pt-10 flex flex-col items-center text-center gap-5">
-
-          {/* Step indicator */}
-          <div className="flex gap-1.5">
-            {steps.map((_, i) => (
-              <div
-                key={i}
-                className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? 'w-6 bg-art-orange' : i < step ? 'w-3 bg-art-orange/40' : 'w-3 bg-[#2d2d2d]/15'}`}
-              />
-            ))}
-          </div>
+        <div className="p-6 flex flex-col items-center text-center gap-4 pt-8">
 
           {/* Icon */}
-          <div className={`${current.color} mt-1`}>
+          <div className={`${current.color}`}>
             {current.icon}
           </div>
 
@@ -141,8 +190,13 @@ export const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ language, memb
             {desc}
           </p>
 
+          {/* Visual preview */}
+          <div className="w-full">
+            {current.preview}
+          </div>
+
           {/* Actions */}
-          <div className="flex gap-3 w-full mt-2">
+          <div className="flex gap-3 w-full mt-1">
             {step > 0 && (
               <button
                 type="button"

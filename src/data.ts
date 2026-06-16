@@ -10,7 +10,7 @@ export const defaultMembers: Member[] = [
   { id: 'jesus', name: 'Jesús', nickname: 'Jesús Sirena', avatarUrl: '🏊‍♂️', role: 'roleInfiltrado', color: 'from-cyan-400 to-sky-600' },
   { id: 'emelin', name: 'Emelin', nickname: 'Emelin la Bella', avatarUrl: '💅', role: 'roleDormilon', color: 'from-fuchsia-400 to-pink-600' },
   { id: 'eva', name: 'Eva', nickname: 'Eva Sunbath', avatarUrl: '🏖️', role: 'roleDormilon', color: 'from-red-400 to-orange-600' },
-  { id: 'amiga_eva', name: 'Amiga Eva', nickname: "La Increïble Amiga d'Eva", avatarUrl: '🕶️', role: 'roleInfiltrado', color: 'from-zinc-400 to-slate-600' },
+  { id: 'amiga_eva', name: 'Jade', nickname: 'Jade la Misteriosa', avatarUrl: '🕶️', role: 'roleInfiltrado', color: 'from-zinc-400 to-slate-600' },
 ];
 
 export const defaultSightseeings: SightseeingItem[] = [
@@ -120,7 +120,7 @@ export const defaultPlans: PlanItem[] = [
     date: '2026-06-22',
     time: '14:00',
     location: 'El nostre Airbnb de somni',
-    votes: ['sally', 'manel', 'alba', 'roger'],
+    votes: [],
   },
   {
     id: 'p2',
@@ -129,7 +129,7 @@ export const defaultPlans: PlanItem[] = [
     date: '2026-06-22',
     time: '19:30',
     location: 'Castillo de Santa Bárbara',
-    votes: ['sally', 'luke', 'lluc', 'eva'],
+    votes: [],
   },
   {
     id: 'p3',
@@ -138,7 +138,7 @@ export const defaultPlans: PlanItem[] = [
     date: '2026-06-23',
     time: '10:30',
     location: 'Playa de San Juan, Alicante',
-    votes: ['jesus', 'emelin', 'eva', 'amiga_eva', 'luke'],
+    votes: [],
   },
   {
     id: 'p4',
@@ -147,7 +147,7 @@ export const defaultPlans: PlanItem[] = [
     date: '2026-06-23',
     time: '21:30',
     location: 'Airbnb Piscina & Jardí',
-    votes: ['lluc', 'manel', 'sally', 'roger', 'jesus'],
+    votes: [],
   },
   {
     id: 'p5',
@@ -156,7 +156,7 @@ export const defaultPlans: PlanItem[] = [
     date: '2026-06-24',
     time: '09:45',
     location: 'Puerto de Alicante / Isla Tabarca',
-    votes: ['sally', 'manel', 'alba', 'luke', 'roger', 'jesus', 'emelin', 'eva'],
+    votes: [],
   },
   {
     id: 'p6',
@@ -165,7 +165,7 @@ export const defaultPlans: PlanItem[] = [
     date: '2026-06-25',
     time: '17:00',
     location: 'Calle Castaños / Centro de Alicante',
-    votes: ['lluc', 'alba', 'eva', 'amiga_eva'],
+    votes: [],
   },
 ];
 

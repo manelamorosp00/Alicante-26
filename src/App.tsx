@@ -48,6 +48,12 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const [showWhoAreYou, setShowWhoAreYou] = useState(false); // Modal "Qui ets tu?"
   const [showTutorial, setShowTutorial] = useState(false); // Tutorial onboarding
+  // Profile setup (between "Qui ets tu?" and tutorial)
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [pendingMemberId, setPendingMemberId] = useState<string>('');
+  const [setupAvatar, setSetupAvatar] = useState('');
+  const [setupNickname, setSetupNickname] = useState('');
+  const [setupRole, setSetupRole] = useState('');
 
   // 1. Language selector state
   const [language, setLanguage] = useState<Language>(() => {
@@ -143,20 +149,36 @@ export default function App() {
     setShowWhoAreYou(false);
   };
 
-  // Vincular compte Google a un membre del grup
-  const handleLinkMember = async (memberId: string) => {
-    if (!firebaseUser) return;
+  // Step 1: user picks who they are → open profile setup
+  const handlePickMember = (memberId: string) => {
+    const member = members.find(m => m.id === memberId);
+    if (!member) return;
+    setPendingMemberId(memberId);
+    setSetupAvatar(member.avatarUrl);
+    setSetupNickname(member.nickname || member.name);
+    setSetupRole(member.role);
+    setShowWhoAreYou(false);
+    setShowProfileSetup(true);
+  };
+
+  // Step 2: user confirms their profile → link to Google + maybe show tutorial
+  const handleConfirmProfileSetup = async () => {
+    if (!firebaseUser || !pendingMemberId) return;
     try {
-      await updateDoc(doc(db, 'members', memberId), { googleUid: firebaseUser.uid });
-      setActiveMemberId(memberId);
-      setShowWhoAreYou(false);
-      // Mostrar tutorial la primera vegada que es vincula
-      const tutorialKey = `alicante_tutorial_done_${memberId}`;
+      await updateDoc(doc(db, 'members', pendingMemberId), {
+        googleUid: firebaseUser.uid,
+        avatarUrl: setupAvatar,
+        nickname: setupNickname.trim() || setupNickname,
+        role: setupRole,
+      });
+      setActiveMemberId(pendingMemberId);
+      setShowProfileSetup(false);
+      const tutorialKey = `alicante_tutorial_done_${pendingMemberId}`;
       if (!localStorage.getItem(tutorialKey)) {
         setShowTutorial(true);
       }
     } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `members/${memberId}`);
+      handleFirestoreError(err, OperationType.UPDATE, `members/${pendingMemberId}`);
     }
   };
 
@@ -182,6 +204,21 @@ export default function App() {
 
   // Synchronize Firestore subscriptions (realtime bidirectional Sync)
   useEffect(() => {
+    // One-time migrations (run once per browser, tracked in localStorage)
+    if (!localStorage.getItem('alicante_migration_jade_v1')) {
+      updateDoc(doc(db, 'members', 'amiga_eva'), { name: 'Jade', nickname: 'Jade la Misteriosa' })
+        .then(() => localStorage.setItem('alicante_migration_jade_v1', 'true'))
+        .catch(() => {}); // Silently ignore if doc doesn't exist yet
+    }
+    if (!localStorage.getItem('alicante_migration_clear_votes_v1')) {
+      getDocs(collection(db, 'plans')).then((snap) => {
+        snap.forEach((d) => {
+          updateDoc(doc(db, 'plans', d.id), { votes: [], favorites: [] }).catch(() => {});
+        });
+        localStorage.setItem('alicante_migration_clear_votes_v1', 'true');
+      }).catch(() => {});
+    }
+
     // 1. Sync Members
     const unsubMembers = onSnapshot(collection(db, 'members'), (snapshot) => {
       if (snapshot.empty) {
@@ -573,7 +610,7 @@ export default function App() {
                 key={m.id}
                 type="button"
                 disabled={alreadyLinked}
-                onClick={() => handleLinkMember(m.id)}
+                onClick={() => handlePickMember(m.id)}
                 className={`group p-3 border-2 flex flex-col items-center gap-2 text-center transition-all rounded-none select-none
                   ${alreadyLinked
                     ? 'border-[#2d2d2d]/20 bg-gray-100 opacity-50 cursor-not-allowed'
@@ -606,12 +643,119 @@ export default function App() {
     </div>
   ) : null;
 
+  // 5d. Profile Setup modal — edit avatar/nickname/role before linking + tutorial
+  const setupEmojis = [
+    '🙋‍♀️','🏄‍♂️','🍻','💃','🍕','🕶️','🌴','🍟','🚗','🏖️',
+    '🎧','🎉','👙','🔥','🍹','🥑','💰','📸','🏊‍♂️','💅',
+    '🦄','🔮','🎯','🚀','🍔','🍦','👑','🌮','🦈','🐚',
+  ];
+  const availableSetupRoles = [
+    'rolePlanner','roleTreasurer','roleParty','roleChef',
+    'roleDriver','roleDormilon','roleFotografo','roleInfiltrado',
+  ];
+  const ProfileSetupModal = showProfileSetup ? (() => {
+    const pendingMember = members.find(m => m.id === pendingMemberId);
+    return (
+      <div className="fixed inset-0 bg-black/70 z-[150] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="w-full max-w-md bg-white border-4 border-[#2d2d2d] shadow-[10px_10px_0px_0px_#2d2d2d] rounded-none">
+          {/* Header */}
+          <div className="bg-[#2d2d2d] px-6 py-4 flex items-center gap-3">
+            <span className="text-3xl">{setupAvatar}</span>
+            <div>
+              <p className="text-[10px] text-white/50 uppercase tracking-wider font-mono">
+                {language === 'ca' ? 'Personalitza el teu perfil' : language === 'en' ? 'Customize your profile' : 'Customiza tu jeto'}
+              </p>
+              <h2 className="font-display font-black text-lg uppercase text-white leading-tight">
+                {pendingMember?.name}
+              </h2>
+            </div>
+          </div>
+
+          <div className="p-6 flex flex-col gap-5">
+            {/* Avatar picker */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-wider text-art-text/60 mb-2">
+                {language === 'ca' ? 'Tria el teu emoji' : language === 'en' ? 'Pick your emoji' : 'Elige tu emoji'}
+              </label>
+              <div className="grid grid-cols-10 gap-1">
+                {setupEmojis.map(em => (
+                  <button
+                    key={em}
+                    type="button"
+                    onClick={() => setSetupAvatar(em)}
+                    className={`text-xl p-1 border-2 rounded-none transition-all cursor-pointer
+                      ${setupAvatar === em
+                        ? 'border-art-orange bg-art-orange/10 shadow-[2px_2px_0px_0px_#FF6321]'
+                        : 'border-transparent hover:border-[#2d2d2d]'}`}
+                  >
+                    {em}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Nickname */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-wider text-art-text/60 mb-1">
+                {language === 'ca' ? 'El teu sobrenom' : language === 'en' ? 'Your nickname' : 'Tu mote'}
+              </label>
+              <input
+                type="text"
+                value={setupNickname}
+                onChange={e => setSetupNickname(e.target.value)}
+                maxLength={28}
+                className="w-full px-3 py-2.5 border-2 border-[#2d2d2d] font-bold text-sm text-art-text bg-white focus:outline-none focus:border-art-orange"
+              />
+            </div>
+
+            {/* Role */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-wider text-art-text/60 mb-1">
+                {language === 'ca' ? 'El teu rol' : language === 'en' ? 'Your role' : 'Tu cargo'}
+              </label>
+              <select
+                value={setupRole}
+                onChange={e => setSetupRole(e.target.value)}
+                className="w-full px-3 py-2.5 border-2 border-[#2d2d2d] font-bold text-sm text-art-text bg-white focus:outline-none focus:border-art-orange cursor-pointer"
+              >
+                {availableSetupRoles.map(r => (
+                  <option key={r} value={r}>{t(r as any, language)}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => { setShowProfileSetup(false); setShowWhoAreYou(true); }}
+                className="flex-1 py-3 border-2 border-[#2d2d2d] font-black uppercase text-xs text-art-text/60 hover:text-art-text hover:bg-[#fdfaf2] transition-all cursor-pointer rounded-none"
+              >
+                {language === 'ca' ? '← Enrere' : language === 'en' ? '← Back' : '← Atrás'}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmProfileSetup}
+                className="flex-2 flex-grow py-3 border-2 border-[#2d2d2d] bg-art-orange text-white font-black uppercase text-xs shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-y-[-1px] transition-all cursor-pointer rounded-none flex items-center justify-center gap-2"
+              >
+                ✓ {language === 'ca' ? 'Confirmar i entrar' : language === 'en' ? 'Confirm & Enter' : 'Confirmá y entrar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  })() : null;
+
   // 6. Main App rendering with chosen character loaded
   return (
     <div className="min-h-screen bg-[#fdfaf2] text-art-text font-sans flex flex-col justify-between" id="full-app-shell">
 
       {/* Modal "Qui ets tu?" overlay */}
       {WhoAreYouModal}
+
+      {/* Profile Setup modal */}
+      {ProfileSetupModal}
 
       {/* Tutorial onboarding — primera vegada */}
       {showTutorial && (
