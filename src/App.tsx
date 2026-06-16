@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Language, Member, Expense, PlanItem, VoteItem } from './types';
+import { Language, Member, Expense, PlanItem, VoteItem, WheelConfig } from './types';
 import { t } from './translations';
 import {
   defaultMembers,
@@ -71,6 +71,7 @@ export default function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [plans, setPlans] = useState<PlanItem[]>([]);
   const [votes, setVotes] = useState<VoteItem[]>([]);
+  const [wheels, setWheels] = useState<WheelConfig[]>([]);
 
   // 4. Tab selection state
   const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'plans' | 'recomanacions' | 'sightseeing' | 'games' | 'profiles'>('dashboard');
@@ -280,11 +281,23 @@ export default function App() {
       handleFirestoreError(error, OperationType.GET, 'votes');
     });
 
+    // 5. Sync custom Wheels (no seeding — users create their own)
+    const unsubWheels = onSnapshot(collection(db, 'wheels'), (snapshot) => {
+      const list: WheelConfig[] = [];
+      snapshot.forEach((d) => {
+        list.push(d.data() as WheelConfig);
+      });
+      setWheels(list);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'wheels');
+    });
+
     return () => {
       unsubMembers();
       unsubExpenses();
       unsubPlans();
       unsubVotes();
+      unsubWheels();
     };
   }, []);
 
@@ -509,6 +522,32 @@ export default function App() {
       await deleteDoc(doc(db, 'votes', pollId));
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, `votes/${pollId}`);
+    }
+  };
+
+  // Wheel CRUD
+  const handleSaveWheel = async (wheel: Omit<WheelConfig, 'id'>) => {
+    const id = `wheel_${Date.now()}`;
+    try {
+      await setDoc(doc(db, 'wheels', id), { ...wheel, id });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, 'wheels');
+    }
+  };
+
+  const handleUpdateWheel = async (id: string, updated: Partial<WheelConfig>) => {
+    try {
+      await updateDoc(doc(db, 'wheels', id), updated);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `wheels/${id}`);
+    }
+  };
+
+  const handleDeleteWheel = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'wheels', id));
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, `wheels/${id}`);
     }
   };
 
@@ -1164,6 +1203,11 @@ export default function App() {
                   language={language}
                   members={members}
                   punishments={punishmentOptions.map(o => o.text[language])}
+                  customWheels={wheels}
+                  activeMemberId={activeMemberId}
+                  onSaveWheel={handleSaveWheel}
+                  onUpdateWheel={handleUpdateWheel}
+                  onDeleteWheel={handleDeleteWheel}
                 />
               </div>
 

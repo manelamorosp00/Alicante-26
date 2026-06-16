@@ -68,6 +68,14 @@ export interface VoteItem {
   closed: boolean;
 }
 
+export interface WheelConfig {
+  id: string;
+  name: string;
+  emoji: string;
+  items: string[];
+  createdBy: string;
+}
+
 export interface GameProp {
   id: string;
   title: Record<Language, string>;
