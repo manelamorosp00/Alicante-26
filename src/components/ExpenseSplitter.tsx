@@ -30,7 +30,6 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Sync payer with active member if it changes
   React.useEffect(() => {
     if (activeMemberId) {
       setPayer(activeMemberId);
@@ -45,7 +44,6 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
     setSubmitError(null);
     setIsSubmitting(true);
 
-    // If custom split is not checked, we split between everyone
     const splitIds = useCustomSplit ? splitBetween : [];
 
     try {
@@ -57,14 +55,12 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
         date: new Date().toISOString().split('T')[0],
       });
 
-      // Only clear form on success
       setDescription('');
       setAmount('');
       setUseCustomSplit(false);
       setSplitBetween(members.map(m => m.id));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      // Show a friendly error; the raw Firestore error may be JSON
       try {
         const parsed = JSON.parse(msg);
         setSubmitError(`Error: ${parsed.error ?? msg}`);
@@ -86,20 +82,15 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
     }
   };
 
-  // 1. Calculate Balances
   const calculateBalances = () => {
     const balances: Record<string, number> = {};
-    members.forEach(m => {
-      balances[m.id] = 0;
-    });
+    members.forEach(m => { balances[m.id] = 0; });
 
     expenses.forEach(exp => {
       const payerId = exp.paidBy;
       const totalAmount = exp.amount;
-      // Get array of split participants
       const participants = exp.splitBetween.length > 0 ? exp.splitBetween : members.map(m => m.id);
-      
-      // Ensure raw balance values are correctly credited/debited
+
       if (balances[payerId] !== undefined) {
         balances[payerId] += totalAmount;
       }
@@ -118,61 +109,41 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
   const balances = calculateBalances();
   const totalTripExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
 
-  // 2. Greedy Debt Settler Algorithm
   const calculateSettlements = () => {
     const listBalances = { ...balances };
-    
-    // Sort debtors and creditors
     const debtorList: { id: string; balance: number }[] = [];
     const creditorList: { id: string; balance: number }[] = [];
 
     Object.entries(listBalances).forEach(([id, bal]) => {
-      // Avoid tiny float values
       if (Math.abs(bal) > 0.01) {
-        if (bal < 0) {
-          debtorList.push({ id, balance: bal });
-        } else {
-          creditorList.push({ id, balance: bal });
-        }
+        if (bal < 0) debtorList.push({ id, balance: bal });
+        else creditorList.push({ id, balance: bal });
       }
     });
 
-    // Debtors: ascending order (most negative first)
     debtorList.sort((a, b) => a.balance - b.balance);
-    // Creditors: descending order (most positive first)
     creditorList.sort((a, b) => b.balance - a.balance);
 
     const transactions: { from: string; to: string; amount: number }[] = [];
-
-    let i = 0; // debtor pointer
-    let j = 0; // creditor pointer
+    let i = 0;
+    let j = 0;
 
     while (i < debtorList.length && j < creditorList.length) {
       const debtor = debtorList[i];
       const creditor = creditorList[j];
-
       const owed = Math.abs(debtor.balance);
       const credit = creditor.balance;
-
       const minTransfer = parseFloat(Math.min(owed, credit).toFixed(2));
 
       if (minTransfer > 0.01) {
-        transactions.push({
-          from: debtor.id,
-          to: creditor.id,
-          amount: minTransfer,
-        });
+        transactions.push({ from: debtor.id, to: creditor.id, amount: minTransfer });
       }
 
       debtor.balance += minTransfer;
       creditor.balance -= minTransfer;
 
-      if (Math.abs(debtor.balance) < 0.01) {
-        i++;
-      }
-      if (Math.abs(creditor.balance) < 0.01) {
-        j++;
-      }
+      if (Math.abs(debtor.balance) < 0.01) i++;
+      if (Math.abs(creditor.balance) < 0.01) j++;
     }
 
     return transactions;
@@ -182,11 +153,9 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
 
   return (
     <div className="w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 py-2">
-      
-      {/* Left Column: Form & Statistics */}
+
       <div className="md:col-span-5 flex flex-col gap-6">
-        
-        {/* Statistics Ring Card */}
+
         <div className="bg-[#2d2d2d] text-white p-6 shadow-[8px_8px_0px_0px_#FF6321] border-2 border-[#2d2d2d] rounded-none flex flex-col">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -199,14 +168,13 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
           </div>
 
           <p className="text-xs text-white/80 border-t border-white/10 pt-3 font-medium">
-            {language === 'ca' 
-              ? `Repartit entre ${members.length} persones de viatge.` 
-              : language === 'en' 
-              ? `Divided among ${members.length} passengers.` 
-              : `Repartío' a susharra entre lo' ${members.length} de la peñita.`}
+            {language === 'ca'
+              ? `Repartit entre ${members.length} persones de viatge.`
+              : language === 'en'
+              ? `Divided among ${members.length} passengers.`
+              : `Repartio' a susharra entre lo' ${members.length} de la peñita.`}
           </p>
 
-          {/* Quick Member Contribution List */}
           <div className="mt-4 flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
             {members.map(member => {
               const personalExpenses = expenses
@@ -214,8 +182,8 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                 .reduce((sum, e) => sum + e.amount, 0);
 
               const balance = balances[member.id] || 0;
-              const formatBalance = balance > 0 
-                ? `+${balance.toFixed(1)}€` 
+              const formatBalance = balance > 0
+                ? `+${balance.toFixed(1)}€`
                 : `${balance.toFixed(1)}€`;
 
               return (
@@ -236,7 +204,6 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
           </div>
         </div>
 
-        {/* Add Expense Form Box */}
         <div className="bg-white border-2 border-[#2d2d2d] p-6 shadow-[5px_5px_0px_0px_#2d2d2d] rounded-none">
           <div className="flex items-center gap-2 mb-4">
             <Coins className="text-art-orange w-5 h-5 stroke-[2.5px]" />
@@ -246,7 +213,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-xs md:text-sm">
             <div>
               <label htmlFor="expense-desc" className="block text-xs font-black uppercase tracking-wider text-art-text/60 mb-1">
-                {language === 'ca' ? 'Què és?' : language === 'en' ? 'What item?' : 'Consesto'}
+                {language === 'ca' ? 'Que es?' : language === 'en' ? 'What item?' : 'Consesto'}
               </label>
               <input
                 id="expense-desc"
@@ -296,7 +263,6 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
               </div>
             </div>
 
-            {/* Custom Split Toggle */}
             <div className="pt-1">
               <label htmlFor="custom-split-checkbox" className="flex items-center gap-2 cursor-pointer select-none">
                 <input
@@ -307,18 +273,18 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                   className="w-4 h-4 text-art-orange border-2 border-[#2d2d2d] focus:ring-0 rounded-none cursor-pointer"
                 />
                 <span className="text-xs font-black uppercase tracking-wider text-[#2d2d2d]/85">
-                  {language === 'ca' 
-                    ? 'Dividir només entre algunes persones' 
-                    : language === 'en' 
-                    ? 'Split only among specific friends' 
-                    : 'Repartí solo con farándula fihá'}
+                  {language === 'ca'
+                    ? 'Dividir nomes entre algunes persones'
+                    : language === 'en'
+                    ? 'Split only among specific friends'
+                    : 'Reparti solo con farandula fiha'}
                 </span>
               </label>
 
               {useCustomSplit && (
                 <div className="mt-3 p-3 bg-art-bg border-2 border-[#2d2d2d] rounded-none max-h-48 overflow-y-auto flex flex-col gap-1.5 animate-fadeIn">
                   <span className="text-[10px] text-art-text/50 font-mono font-bold uppercase tracking-wider mb-1 block">
-                    {language === 'ca' ? 'Integrants afectats:' : language === 'en' ? 'Affected friends:' : 'Gente arrastrá:'}
+                    {language === 'ca' ? 'Integrants afectats:' : language === 'en' ? 'Affected friends:' : 'Gente arrastra:'}
                   </span>
                   {members.map(member => (
                     <button
@@ -332,7 +298,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                         <span className="text-xs">{member.nickname || member.name}</span>
                       </span>
                       <span className="text-[11px] font-black">
-                        {splitBetween.includes(member.id) ? '✓' : ''}
+                        {splitBetween.includes(member.id) ? 'x' : ''}
                       </span>
                     </button>
                   ))}
@@ -363,10 +329,8 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
 
       </div>
 
-      {/* Right Column: Debts & Settlement & History */}
       <div className="md:col-span-7 flex flex-col gap-6">
 
-        {/* Debts Settlement Dashboard */}
         <div className="bg-white border-2 border-[#2d2d2d] p-6 shadow-[5px_5px_0px_0px_#2d2d2d] rounded-none">
           <div className="flex items-center gap-2 mb-4">
             <ArrowRightLeft className="text-art-orange w-5 h-5 stroke-[2.5px]" />
@@ -378,11 +342,11 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
               <Sparkles className="text-emerald-500 w-10 h-10 mb-2" />
               <p className="text-sm font-black uppercase tracking-wider text-emerald-800">{t('noDebtsYet', language)}</p>
               <p className="text-xs text-emerald-600 mt-1 font-medium">
-                {language === 'ca' 
-                  ? 'Fins ara tothom ha pagat la seva part justa.' 
-                  : language === 'en' 
-                  ? 'All expenses are perfectly equalized so far.' 
-                  : 'Nadie se columpia de momento. ¡Cuentas limpia\'!'}
+                {language === 'ca'
+                  ? 'Fins ara tothom ha pagat la seva part justa.'
+                  : language === 'en'
+                  ? 'All expenses are perfectly equalized so far.'
+                  : "Nadie se columpia de momento."}
               </p>
             </div>
           ) : (
@@ -390,30 +354,26 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
               {settlements.map((tx, idx) => {
                 const debtorObj = members.find(m => m.id === tx.from);
                 const creditorObj = members.find(m => m.id === tx.to);
-
                 if (!debtorObj || !creditorObj) return null;
 
                 return (
-                  <div key={idx} className="flex items-center justify-between p-3.5 bg-white border-2 border-[#2d2d2d] rounded-none text-xs md:text-sm shadow-[3px_3px_0px_0px_#2d2d2d] transition-hover hover:translate-y-[-1px]">
+                  <div key={idx} className="flex items-center justify-between p-3.5 bg-white border-2 border-[#2d2d2d] rounded-none text-xs md:text-sm shadow-[3px_3px_0px_0px_#2d2d2d]">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span className="flex items-center gap-1 p-1 bg-art-bg rounded-none border border-[#2d2d2d]">
                         <span>{debtorObj.avatarUrl}</span>
                         <span className="font-extrabold text-art-text">{debtorObj.name}</span>
                       </span>
-                      
                       <span className="text-xs text-art-text/50 px-1 font-black uppercase tracking-tight text-[10px]">
                         {t('debtOwesText', language)}
                       </span>
-
                       <span className="flex items-center gap-1 p-1 bg-art-bg rounded-none border border-[#2d2d2d]">
                         <span>{creditorObj.avatarUrl}</span>
                         <span className="font-extrabold text-art-text">{creditorObj.name}</span>
                       </span>
                     </div>
-
                     <div className="text-right">
                       <span className="font-mono text-base font-black text-art-orange whitespace-nowrap">
-                        {tx.amount.toFixed(2)} €
+                        {tx.amount.toFixed(2)} EUR
                       </span>
                     </div>
                   </div>
@@ -423,7 +383,6 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
           )}
         </div>
 
-        {/* Expenses List History */}
         <div className="bg-white border-2 border-[#2d2d2d] p-6 shadow-[5px_5px_0px_0px_#2d2d2d] rounded-none flex-1 flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-display font-black uppercase text-lg text-art-text">{t('recentExpenses', language)}</h3>
@@ -437,7 +396,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                 }}
                 className="text-xs border-2 border-rose-500 bg-rose-50 hover:bg-rose-100 text-rose-500 font-black px-2.5 py-1 transition-all cursor-pointer uppercase tracking-wider select-none shadow-[2px_2px_0px_0px_#f43f5e]"
               >
-                {language === 'ca' ? 'Resetear Tot' : language === 'en' ? 'Reset All' : 'Borrà to\' er taco'}
+                {language === 'ca' ? 'Resetear Tot' : language === 'en' ? 'Reset All' : "Borra to'"}
               </button>
             )}
           </div>
@@ -461,9 +420,37 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                         <span className="bg-[#fdfaf2] px-2 py-0.5 rounded-none border border-[#2d2d2d] flex items-center gap-1 font-bold text-art-text">
                           {payerObj ? `${payerObj.avatarUrl} ${payerObj.nickname || payerObj.name}` : ''}
                         </span>
-                        <span>•</span>
+                        <span>-</span>
                         <span>{exp.date}</span>
                         {hasCustomSplit && (
-                          <>
-                            <span>•</span>
-                            <span className="text-white font-bold uppercase tracking-wider text
+                          <span className="text-white font-bold uppercase tracking-wider text-[9px] bg-art-blue px-1.5 py-0.5 rounded-none">
+                            Custom ({exp.splitBetween.length} pax)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono font-black text-art-text text-sm whitespace-nowrap">
+                        {exp.amount.toFixed(2)} EUR
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onDeleteExpense(exp.id)}
+                        className="text-art-text/30 hover:text-rose-600 p-1.5 border border-transparent hover:border-[#2d2d2d] hover:bg-rose-50 transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        title="Delete expense"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+      </div>
+
+    </div>
+  );
+};
