@@ -14,6 +14,7 @@ import { ExpenseSplitter } from './components/ExpenseSplitter';
 import { ItineraryTimeline } from './components/ItineraryTimeline';
 import { SightseeingGrid } from './components/SightseeingGrid';
 import { ProfileManager } from './components/ProfileManager';
+import { TutorialOverlay } from './components/TutorialOverlay';
 import { db, auth, googleProvider } from './firebase';
 import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocs } from 'firebase/firestore';
@@ -44,6 +45,7 @@ export default function App() {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null | undefined>(undefined); // undefined = loading
   const [authLoading, setAuthLoading] = useState(false);
   const [showWhoAreYou, setShowWhoAreYou] = useState(false); // Modal "Qui ets tu?"
+  const [showTutorial, setShowTutorial] = useState(false); // Tutorial onboarding
 
   // 1. Language selector state
   const [language, setLanguage] = useState<Language>(() => {
@@ -138,9 +140,21 @@ export default function App() {
       await updateDoc(doc(db, 'members', memberId), { googleUid: firebaseUser.uid });
       setActiveMemberId(memberId);
       setShowWhoAreYou(false);
+      // Mostrar tutorial la primera vegada que es vincula
+      const tutorialKey = `alicante_tutorial_done_${memberId}`;
+      if (!localStorage.getItem(tutorialKey)) {
+        setShowTutorial(true);
+      }
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `members/${memberId}`);
     }
+  };
+
+  const handleFinishTutorial = () => {
+    if (activeMemberId) {
+      localStorage.setItem(`alicante_tutorial_done_${activeMemberId}`, 'true');
+    }
+    setShowTutorial(false);
   };
 
   // Sync basic local state (tab config / lang)
@@ -178,21 +192,13 @@ export default function App() {
       handleFirestoreError(error, OperationType.GET, 'members');
     });
 
-    // 2. Sync Expenses
+    // 2. Sync Expenses (no seeding — start empty in production)
     const unsubExpenses = onSnapshot(collection(db, 'expenses'), (snapshot) => {
-      if (snapshot.empty) {
-        defaultExpenses.forEach((e) => {
-          setDoc(doc(db, 'expenses', e.id), e).catch((err) => {
-            console.error('Error seeding initial expense:', err);
-          });
-        });
-      } else {
-        const list: Expense[] = [];
-        snapshot.forEach((d) => {
-          list.push(d.data() as Expense);
-        });
-        setExpenses(list);
-      }
+      const list: Expense[] = [];
+      snapshot.forEach((d) => {
+        list.push(d.data() as Expense);
+      });
+      setExpenses(list);
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'expenses');
     });
@@ -216,21 +222,13 @@ export default function App() {
       handleFirestoreError(error, OperationType.GET, 'plans');
     });
 
-    // 4. Sync Votes / Polls
+    // 4. Sync Votes / Polls (no seeding — start empty in production)
     const unsubVotes = onSnapshot(collection(db, 'votes'), (snapshot) => {
-      if (snapshot.empty) {
-        defaultVotes.forEach((v) => {
-          setDoc(doc(db, 'votes', v.id), v).catch((err) => {
-            console.error('Error seeding initial poll:', err);
-          });
-        });
-      } else {
-        const list: VoteItem[] = [];
-        snapshot.forEach((d) => {
-          list.push(d.data() as VoteItem);
-        });
-        setVotes(list);
-      }
+      const list: VoteItem[] = [];
+      snapshot.forEach((d) => {
+        list.push(d.data() as VoteItem);
+      });
+      setVotes(list);
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'votes');
     });
@@ -607,6 +605,15 @@ export default function App() {
 
       {/* Modal "Qui ets tu?" overlay */}
       {WhoAreYouModal}
+
+      {/* Tutorial onboarding — primera vegada */}
+      {showTutorial && (
+        <TutorialOverlay
+          language={language}
+          memberName={members.find(m => m.id === activeMemberId)?.name || ''}
+          onFinish={handleFinishTutorial}
+        />
+      )}
       
       {/* Top Banner Header */}
       <header className="bg-white text-art-text border-b-4 border-[#2d2d2d] sticky top-0 z-50">
