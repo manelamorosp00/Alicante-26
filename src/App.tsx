@@ -660,18 +660,26 @@ export default function App() {
                 type="button"
                 disabled={alreadyLinked}
                 onClick={() => handlePickMember(m.id)}
-                className={`group p-3 border-2 flex flex-col items-center gap-2 text-center transition-all rounded-none select-none
+                className={`group p-3 border-2 flex flex-col items-center gap-2 text-center transition-all rounded-none select-none relative
                   ${alreadyLinked
-                    ? 'border-[#2d2d2d]/20 bg-gray-100 opacity-50 cursor-not-allowed'
+                    ? 'border-[#2d2d2d]/20 bg-gray-50 cursor-not-allowed'
                     : 'border-[#2d2d2d] bg-white hover:bg-[#fdfaf2] cursor-pointer shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-y-[-1px] active:translate-y-0'
                   }`}
               >
-                <div className="w-11 h-11 rounded-full border-2 border-[#2d2d2d] bg-white flex items-center justify-center text-xl shrink-0">
+                {alreadyLinked && (
+                  <span className="absolute top-1.5 right-1.5 bg-[#2d2d2d] text-white text-[8px] font-black uppercase px-1 py-0.5 rounded-none flex items-center gap-0.5">
+                    🔒
+                  </span>
+                )}
+                <div className={`w-11 h-11 rounded-full border-2 border-[#2d2d2d] bg-white flex items-center justify-center text-xl shrink-0 ${alreadyLinked ? 'grayscale opacity-50' : ''}`}>
                   {m.avatarUrl}
                 </div>
                 <div>
-                  <h3 className="font-black text-xs text-art-text uppercase group-hover:text-art-orange transition-colors">{m.name}</h3>
-                  {alreadyLinked && <p className="text-[9px] text-art-text/40 font-mono">Ja vinculat</p>}
+                  <h3 className={`font-black text-xs uppercase transition-colors ${alreadyLinked ? 'text-art-text/40' : 'text-art-text group-hover:text-art-orange'}`}>{m.name}</h3>
+                  {alreadyLinked
+                    ? <p className="text-[9px] font-black text-art-text/50 uppercase mt-0.5">Pres</p>
+                    : <p className="text-[9px] text-art-text/30 font-mono">Selecciona</p>
+                  }
                 </div>
               </button>
             );
