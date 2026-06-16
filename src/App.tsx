@@ -209,6 +209,14 @@ export default function App() {
     if (!firebaseUser) return; // Don't subscribe before the user is authenticated
 
     // One-time migrations (run once per browser, tracked in localStorage)
+    // Migration v3: delete the old seeded default plans (p1-p6) — itinerary should start empty
+    if (!localStorage.getItem('alicante_migration_clear_plans_v1')) {
+      const oldPlanIds = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'];
+      Promise.all(
+        oldPlanIds.map(id => deleteDoc(doc(db, 'plans', id)).catch(() => {}))
+      ).then(() => localStorage.setItem('alicante_migration_clear_plans_v1', 'true'));
+    }
+
     if (!localStorage.getItem('alicante_migration_jade_v1')) {
       updateDoc(doc(db, 'members', 'amiga_eva'), { name: 'Jade', nickname: 'Jade la Misteriosa' })
         .then(() => localStorage.setItem('alicante_migration_jade_v1', 'true'))
