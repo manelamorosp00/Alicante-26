@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidMember(m) {
+      return m.id is string && m.id.size() <= 64
+        && m.name is string && m.name.size() <= 100
+        && m.nickname is string && m.nickname.size() <= 100
+        && m.avatarUrl is string && m.avatarUrl.size() <= 50
+        && m.role is string && m.role.size() <= 100
+        && m.color is string && m.color.size() <= 100
+        && (!('googleUid' in m) || m.googleUid is string && m.googleUid.size() <= 128);
+    }
+
+    function isValidExpense(e) {
+      return e.id is string && e.id.size() <= 64
+        && e.description is string && e.description.size() <= 500
+        && (e.amount is number || e.amount is int)
+        && e.paidBy is string && e.paidBy.size() <= 64
+        && e.splitBetween is list && e.splitBetween.size() <= 50
+        && e.date is string && e.date.size() <= 24;
+    }
+
+    function isValidPlan(p) {
+      return p.id is string && p.id.size() <= 64
+        && p.title is string && p.title.size() <= 200
+        && p.description is string && p.description.size() <= 1500
+        && p.date is string && p.date.size() <= 24
+        && p.time is string && p.time.size() <= 10
+        && p.location is string && p.location.size() <= 200
+        && (!('votes' in p) || p.votes is list)
+        && (!('favorites' in p) || p.favorites is list)
+        && (!('isHogueraEvent' in p) || p.isHogueraEvent is bool);
+    }
+
+    function isValidVote(v) {
+      return v.id is string && v.id.size() <= 64
+        && v.question is map
+        && v.options is list && v.options.size() <= 20
+        && v.createdBy is string && v.createdBy.size() <= 64
+        && v.closed is bool;
+    }
+
+    match /members/{memberId} {
+      allow read: if true;
+      allow create, update: if isValidId(memberId) && isValidMember(request.resource.data);
+      allow delete: if false;
+    }
+    
+    match /expenses/{expenseId} {
+      allow read: if true;
+      allow create, update: if isValidId(expenseId) && isValidExpense(request.resource.data);
+      allow delete: if true;
+    }
+    
+    match /plans/{planId} {
+      allow read: if true;
+      allow create, update: if isValidId(planId) && isValidPlan(request.resource.data);
+      allow delete: if true;
+    }
+    
+    match /votes/{voteId} {
+      allow read: if true;
+      allow create, update: if isValidId(voteId) && isValidVote(request.resource.data);
+      allow delete: if true;
+    }
+  }
+}

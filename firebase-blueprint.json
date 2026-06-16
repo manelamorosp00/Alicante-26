@@ -1,0 +1,158 @@
+{
+  "entities": {
+    "Member": {
+      "title": "Member",
+      "description": "Representa un amic d'Alacant amb avatar, rol i color de fons.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID del membre d'Alacant."
+        },
+        "name": {
+          "type": "string",
+          "description": "Nom real del membre."
+        },
+        "nickname": {
+          "type": "string",
+          "description": "Sobrenom de la persona."
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "Icona emoji de la persona."
+        },
+        "role": {
+          "type": "string",
+          "description": "Rol assignat de d'Alacant 2026."
+        },
+        "color": {
+          "type": "string",
+          "description": "Classe de fons de color Tailwind."
+        }
+      },
+      "required": ["id", "name", "nickname", "avatarUrl", "role", "color"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Una despesa del viatge pagada per un membre que es divideix entre d'altres.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID únic de la despesa."
+        },
+        "description": {
+          "type": "string",
+          "description": "Concepte o descripció de la despesa."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Import total en euros de la despesa."
+        },
+        "paidBy": {
+          "type": "string",
+          "description": "ID del membre que ha pagat la factura."
+        },
+        "splitBetween": {
+          "type": "array",
+          "description": "Llista d'IDs dels membres voluntaris per dividir."
+        },
+        "date": {
+          "type": "string",
+          "description": "Data de la despesa (YYYY-MM-DD)."
+        }
+      },
+      "required": ["id", "description", "amount", "paidBy", "splitBetween", "date"]
+    },
+    "PlanItem": {
+      "title": "PlanItem",
+      "description": "Un esdeveniment o activitat al calendari grupal o importat de les Fogueres.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID únic del pla."
+        },
+        "title": {
+          "type": "string",
+          "description": "Títol de l'activitat."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detalls del pla."
+        },
+        "date": {
+          "type": "string",
+          "description": "Data del pla (format YYYY-MM-DD)."
+        },
+        "time": {
+          "type": "string",
+          "description": "Hora del pla (format HH:MM)."
+        },
+        "location": {
+          "type": "string",
+          "description": "Ubicació o carrer."
+        },
+        "votes": {
+          "type": "array",
+          "description": "Llista d'IDs dels membres que han votat positivament."
+        },
+        "favorites": {
+          "type": "array",
+          "description": "Llista d'IDs dels membres que el tenen de preferit."
+        },
+        "isHogueraEvent": {
+          "type": "boolean",
+          "description": "Indica si prové del programa oficial de Fogueres."
+        }
+      },
+      "required": ["id", "title", "description", "date", "time", "location"]
+    },
+    "VoteItem": {
+      "title": "VoteItem",
+      "description": "Una enquesta o votació compartida on la gent pot expressar la seva decisió.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID únic de l'enquesta."
+        },
+        "question": {
+          "type": "object",
+          "description": "Pregunta de l'enquesta traduïda."
+        },
+        "options": {
+          "type": "array",
+          "description": "Llista d'opcions editables per l'enquesta."
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "ID del creador de la votació."
+        },
+        "closed": {
+          "type": "boolean",
+          "description": "Indica si la votació ja està tancada."
+        }
+      },
+      "required": ["id", "question", "options", "createdBy", "closed"]
+    }
+  },
+  "firestore": {
+    "/members/{memberId}": {
+      "schema": "Member",
+      "description": "Col·lecció de perfils d'amics sincronitzats."
+    },
+    "/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Registre compartit de despeses del grup."
+    },
+    "/plans/{planId}": {
+      "schema": "PlanItem",
+      "description": "Calendari i itinerari compartit incloent actes de Fogueres."
+    },
+    "/votes/{voteId}": {
+      "schema": "VoteItem",
+      "description": "Votacions i enquestes compartides en línia."
+    }
+  }
+}

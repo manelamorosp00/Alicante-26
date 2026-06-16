@@ -1,0 +1,6 @@
+{
+  "name": "Alacant 2026 - Friends Trip Coordinator",
+  "description": "A comprehensive trip planner, expense controller, itinerary manager, and games module for Sally, Lluc, Luke, Alba, Manel, Roger, Jesús, Emelin, Eva, and Amiga Eva during their collective holiday to Alicante elements.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
