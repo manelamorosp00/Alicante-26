@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Language, Member, Expense, PlanItem, VoteItem, WheelConfig, DrinkCount, BingoCell, NightRating, PlaylistSong } from './types';
+import { Language, Member, Expense, PlanItem, VoteItem, WheelConfig, DrinkCount, PlaylistSong } from './types';
 import { t } from './translations';
 import {
   defaultMembers,
@@ -49,34 +49,6 @@ import {
 } from 'lucide-react';
 
 
-// ─── Bingo de Fogueres — 25 caselles predefinides ───────────────────────────
-const DEFAULT_BINGO_CELLS: BingoCell[] = [
-  { id: 'b01', text: 'Veure una mascletà 💥', checkedBy: [] },
-  { id: 'b02', text: 'Menjar un pà amb oli i tomàquet 🍅', checkedBy: [] },
-  { id: 'b03', text: 'Banyar-se de nit 🌊', checkedBy: [] },
-  { id: 'b04', text: 'Perdre algú del grup 😅', checkedBy: [] },
-  { id: 'b05', text: 'Foto amb una Hoguera 🔥', checkedBy: [] },
-  { id: 'b06', text: 'Birra a primera hora del matí 🍺', checkedBy: [] },
-  { id: 'b07', text: 'Arribar a casa quan ja és de dia ☀️', checkedBy: [] },
-  { id: 'b08', text: 'Menjar tonyina a Mercadona 🐟', checkedBy: [] },
-  { id: 'b09', text: 'Veure un castell de focs 🎆', checkedBy: [] },
-  { id: 'b10', text: 'Ballar en un bar fins tancar 🕺', checkedBy: [] },
-  { id: 'b11', text: 'Foto al castell de Santa Bàrbara 🏰', checkedBy: [] },
-  { id: 'b12', text: 'Prendre una sangria en una terrassa 🍷', checkedBy: [] },
-  { id: 'b13', text: '⭐ LLIURE — Brinda amb tot el grup! 🥂', checkedBy: [] },
-  { id: 'b14', text: 'Trobar un bar obert a les 6am ⏰', checkedBy: [] },
-  { id: 'b15', text: 'Menjar paella valenciana 🥘', checkedBy: [] },
-  { id: 'b16', text: 'Veure cremar una falla 🔥', checkedBy: [] },
-  { id: 'b17', text: 'Comprar una cosa inútil al mercat 🛍️', checkedBy: [] },
-  { id: 'b18', text: 'Fer una cursa a la platja 🏃', checkedBy: [] },
-  { id: 'b19', text: 'Dormirse al sofà del pis 🛋️', checkedBy: [] },
-  { id: 'b20', text: 'Veure sortir el sol des de la platja 🌅', checkedBy: [] },
-  { id: 'b21', text: 'Cremar-se una mica al sol ☀️🔴', checkedBy: [] },
-  { id: 'b22', text: 'Aconseguir entrada en un local ple 🎟️', checkedBy: [] },
-  { id: 'b23', text: 'Foto grupal tots junts 📸', checkedBy: [] },
-  { id: 'b24', text: 'Pagar una ronda sense queixar-se 💸', checkedBy: [] },
-  { id: 'b25', text: 'Acabar la nit cantant 🎤', checkedBy: [] },
-];
 
 const TRIP_NIGHTS = ['2026-06-22', '2026-06-23', '2026-06-24', '2026-06-25', '2026-06-26'];
 
@@ -113,17 +85,13 @@ export default function App() {
 
   // New features state
   const [drinks, setDrinks] = useState<DrinkCount[]>([]);
-  const [bingoCells, setBingoCells] = useState<BingoCell[]>([]);
-  const [nightRatings, setNightRatings] = useState<NightRating[]>([]);
   const [playlist, setPlaylist] = useState<PlaylistSong[]>([]);
   const [alacantTemp, setAlacantTemp] = useState<number | null>(null);
   const [newSongUrl, setNewSongUrl] = useState('');
   const [newSongTitle, setNewSongTitle] = useState('');
-  const [newBingoText, setNewBingoText] = useState('');
-  const [nightRatingScore, setNightRatingScore] = useState<number>(7);
 
   // 4. Tab selection state
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'plans' | 'recomanacions' | 'sightseeing' | 'games' | 'profiles'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'plans' | 'recomanacions' | 'sightseeing' | 'games' | 'begudes' | 'profiles'>('dashboard');
 
   // Bridge: Recomanacions → Plans tab prefill
   const [prefillPlan, setPrefillPlan] = useState<Partial<PlanItem> | undefined>(undefined);
@@ -359,27 +327,6 @@ export default function App() {
       setDrinks(list);
     }, (error) => console.warn('[drinks] Firestore error:', error.message));
 
-    // 7. Sync Bingo cells (seed defaults if empty)
-    const unsubBingo = onSnapshot(collection(db, 'bingo'), (snapshot) => {
-      if (snapshot.empty) {
-        DEFAULT_BINGO_CELLS.forEach((cell) => {
-          setDoc(doc(db, 'bingo', cell.id), cell).catch(() => {});
-        });
-      } else {
-        const list: BingoCell[] = [];
-        snapshot.forEach((d) => list.push(d.data() as BingoCell));
-        setBingoCells(list);
-      }
-    }, (error) => console.warn('[bingo] Firestore error:', error.message));
-
-    // 8. Sync Night Ratings
-    const unsubNightRatings = onSnapshot(collection(db, 'nightRatings'), (snapshot) => {
-      const list: NightRating[] = [];
-      snapshot.forEach((d) => list.push(d.data() as NightRating));
-      setNightRatings(list);
-    }, (error) => console.warn('[nightRatings] Firestore error:', error.message));
-
-    // 9. Sync Playlist
     const unsubPlaylist = onSnapshot(collection(db, 'playlist'), (snapshot) => {
       const list: PlaylistSong[] = [];
       snapshot.forEach((d) => list.push(d.data() as PlaylistSong));
@@ -393,8 +340,6 @@ export default function App() {
       unsubVotes();
       unsubWheels();
       unsubDrinks();
-      unsubBingo();
-      unsubNightRatings();
       unsubPlaylist();
     };
   }, [firebaseUser]);
@@ -453,45 +398,6 @@ export default function App() {
   };
 
   // ── Bingo handlers ──────────────────────────────────────────────────────────
-  const handleToggleBingoCell = async (cellId: string) => {
-    if (!activeMemberId) return;
-    const cell = bingoCells.find(c => c.id === cellId);
-    if (!cell) return;
-    const alreadyChecked = cell.checkedBy.includes(activeMemberId);
-    const updated: BingoCell = {
-      ...cell,
-      checkedBy: alreadyChecked
-        ? cell.checkedBy.filter(id => id !== activeMemberId)
-        : [...cell.checkedBy, activeMemberId],
-    };
-    await setDoc(doc(db, 'bingo', cellId), updated);
-  };
-
-  const handleAddBingoCell = async () => {
-    if (!newBingoText.trim()) return;
-    const id = 'bc_' + Date.now();
-    const cell: BingoCell = { id, text: newBingoText.trim(), checkedBy: [], custom: true };
-    await setDoc(doc(db, 'bingo', id), cell);
-    setNewBingoText('');
-  };
-
-  const handleDeleteBingoCell = async (cellId: string) => {
-    const cell = bingoCells.find(c => c.id === cellId);
-    if (!cell?.custom) return;
-    await deleteDoc(doc(db, 'bingo', cellId));
-  };
-
-  // ── Night rating handlers ────────────────────────────────────────────────────
-  const handleSubmitNightRating = async (date: string) => {
-    if (!activeMemberId) return;
-    const existing = nightRatings.find(r => r.id === date);
-    const newRating = { memberId: activeMemberId, score: nightRatingScore };
-    const updated: NightRating = existing
-      ? { ...existing, ratings: [...existing.ratings.filter(r => r.memberId !== activeMemberId), newRating] }
-      : { id: date, date, ratings: [newRating] };
-    await setDoc(doc(db, 'nightRatings', date), updated);
-  };
-
   // ── Playlist handlers ────────────────────────────────────────────────────────
   const handleAddSong = async () => {
     if (!newSongTitle.trim() || !activeMemberId) return;
@@ -1093,7 +999,7 @@ export default function App() {
 
         {/* Dynamic navigation bar inside app */}
         <nav className="flex items-center gap-1.5 overflow-x-auto py-1.5 bg-[#fdfaf2] border-2 border-[#2d2d2d] rounded-none p-1.5 shadow-[4px_4px_0px_0px_#2d2d2d] max-w-full justify-start md:justify-center">
-          {(['dashboard', 'expenses', 'plans', 'recomanacions', 'sightseeing', 'games', 'profiles'] as const).map((tab) => {
+          {(['dashboard', 'expenses', 'plans', 'recomanacions', 'sightseeing', 'games', 'begudes', 'profiles'] as const).map((tab) => {
             const labelKey = `nav${tab.charAt(0).toUpperCase() + tab.slice(1)}`;
             const isTabSelected = activeTab === tab;
 
@@ -1105,11 +1011,15 @@ export default function App() {
                 case 'recomanacions': return <Compass className="w-4 h-4" />;
                 case 'sightseeing': return <MapPin className="w-4 h-4" />;
                 case 'games': return <Dices className="w-4 h-4" />;
+                case 'begudes': return <Beer className="w-4 h-4" />;
                 case 'profiles': return <Users className="w-4 h-4" />;
               }
             };
 
             const tabLabel = () => {
+              if (tab === 'begudes') {
+                return language === 'ca' ? 'Begudes' : language === 'en' ? 'Drinks' : "Bebía's";
+              }
               if (tab === 'recomanacions') {
                 return language === 'ca' ? 'Recomanacions' : language === 'en' ? 'Recommendations' : 'Recomanasione\'';
               }
@@ -1354,51 +1264,6 @@ export default function App() {
                       </button>
                     </div>
                   )}
-                </div>
-              </div>
-
-              {/* ── CONTADOR DE BEGUDES ────────────────────────────────────── */}
-              <div className="bg-[#fdfaf2] border-2 border-[#2d2d2d] p-5 shadow-[4px_4px_0px_0px_#2d2d2d] rounded-none">
-                <div className="flex items-center gap-2 mb-4">
-                  <Beer className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
-                  <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">Contador de begudes 🍻</span>
-                </div>
-                {activeMemberId && (() => {
-                  const myDrinks = drinks.find(d => d.memberId === activeMemberId) || { birres: 0, sangries: 0, cubates: 0 };
-                  return (
-                    <div className="flex flex-wrap gap-3 mb-5">
-                      {([['birres', '🍺', 'Birres'], ['sangries', '🍷', 'Sangries'], ['cubates', '🥃', 'Cubates']] as const).map(([type, emoji, label]) => (
-                        <div key={type} className="flex items-center gap-1.5 border-2 border-[#2d2d2d] bg-white px-3 py-2 shadow-[2px_2px_0px_0px_#2d2d2d]">
-                          <button type="button" onClick={() => handleRemoveDrink(type)} className="font-black text-art-text/40 hover:text-art-text cursor-pointer text-lg leading-none select-none">−</button>
-                          <span className="text-base">{emoji}</span>
-                          <span className="font-display font-black text-xl text-art-text min-w-[1.5ch] text-center">{myDrinks[type as keyof typeof myDrinks] as number}</span>
-                          <span className="text-[10px] uppercase font-black text-art-text/40">{label}</span>
-                          <button type="button" onClick={() => handleAddDrink(type)} className="font-black text-art-orange hover:text-art-orange/70 cursor-pointer text-lg leading-none select-none">+</button>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                  {members
-                    .map(m => {
-                      const d = drinks.find(dr => dr.memberId === m.id) || { birres: 0, sangries: 0, cubates: 0 };
-                      return { member: m, total: d.birres + d.sangries + d.cubates, birres: d.birres, sangries: d.sangries, cubates: d.cubates };
-                    })
-                    .sort((a, b) => b.total - a.total)
-                    .map(({ member, total, birres, sangries, cubates }, idx) => (
-                      <div key={member.id} className={`border-2 border-[#2d2d2d] p-3 flex flex-col gap-1 ${idx === 0 && total > 0 ? 'bg-art-yellow shadow-[3px_3px_0px_0px_#2d2d2d]' : 'bg-white'}`}>
-                        <div className="flex items-center gap-2">
-                          {idx === 0 && total > 0 && <span className="text-xs">🏆</span>}
-                          <span className="text-lg">{member.avatarUrl}</span>
-                          <span className="text-[11px] font-black text-art-text truncate">{member.nickname || member.name}</span>
-                        </div>
-                        <div className="flex gap-2 text-[10px] font-mono font-bold text-art-text/60">
-                          <span>🍺{birres}</span><span>🍷{sangries}</span><span>🥃{cubates}</span>
-                        </div>
-                        <span className="text-xs font-display font-black text-art-text">{total} total</span>
-                      </div>
-                    ))}
                 </div>
               </div>
 
@@ -1753,125 +1618,61 @@ export default function App() {
 
 
 
-              {/* ── BINGO DE FOGUERES ──────────────────────────────────────── */}
-              <div className="w-full mt-8 flex flex-col gap-4">
-                <h2 className="font-display font-black uppercase text-lg text-art-text flex items-center gap-2">
-                  <Star className="text-art-orange w-5 h-5" />
-                  Bingo de Fogueres 🎰
-                </h2>
-                <div className="grid grid-cols-5 gap-1.5">
-                  {bingoCells.slice(0, 25).map(cell => {
-                    const checked = activeMemberId ? cell.checkedBy.includes(activeMemberId) : false;
-                    const totalChecked = cell.checkedBy.length;
-                    return (
-                      <button
-                        key={cell.id}
-                        type="button"
-                        onClick={() => handleToggleBingoCell(cell.id)}
-                        className={`relative border-2 border-[#2d2d2d] p-1.5 text-center text-[9px] font-bold leading-tight transition-all cursor-pointer select-none min-h-[56px] flex flex-col items-center justify-center gap-0.5
-                          ${checked ? 'bg-art-orange text-white shadow-[2px_2px_0px_0px_#2d2d2d]' : 'bg-white hover:bg-art-bg text-art-text'}
-                          ${cell.id === 'b13' ? 'bg-art-yellow text-art-text font-black' : ''}`}
-                      >
-                        <span className="text-base leading-none">{cell.text.split(' ')[cell.text.split(' ').length - 1]}</span>
-                        <span className="leading-tight line-clamp-2 text-center">{cell.text.replace(/\S+$/, '').trim()}</span>
-                        {totalChecked > 0 && (
-                          <span className={`absolute top-0.5 right-0.5 text-[8px] font-black ${checked ? 'text-white/70' : 'text-art-orange'}`}>
-                            ×{totalChecked}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                  {/* Custom cells */}
-                  {bingoCells.filter(c => c.custom).map(cell => {
-                    const checked = activeMemberId ? cell.checkedBy.includes(activeMemberId) : false;
-                    return (
-                      <div key={cell.id} className="relative group">
-                        <button type="button" onClick={() => handleToggleBingoCell(cell.id)}
-                          className={`w-full border-2 border-dashed border-[#2d2d2d] p-1.5 text-[9px] font-bold text-center min-h-[56px] flex items-center justify-center transition-all cursor-pointer
-                            ${checked ? 'bg-art-orange text-white' : 'bg-white/60 hover:bg-art-bg text-art-text'}`}>
-                          {cell.text}
-                        </button>
-                        <button type="button" onClick={() => handleDeleteBingoCell(cell.id)}
-                          className="absolute -top-1 -right-1 bg-red-500 text-white w-4 h-4 rounded-full text-[8px] font-black opacity-0 group-hover:opacity-100 transition-all cursor-pointer flex items-center justify-center">
-                          ×
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-                {/* Add custom cell */}
-                {activeMemberId && (
-                  <div className="flex gap-2 mt-1">
-                    <input type="text" placeholder="Afegir casella personalitzada..." value={newBingoText}
-                      onChange={e => setNewBingoText(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && handleAddBingoCell()}
-                      className="flex-1 border-2 border-dashed border-[#2d2d2d] px-3 py-2 text-xs font-mono outline-none bg-white/60" />
-                    <button type="button" onClick={handleAddBingoCell}
-                      className="border-2 border-[#2d2d2d] bg-art-yellow px-4 font-black text-xs shadow-[2px_2px_0px_0px_#2d2d2d] cursor-pointer hover:bg-art-yellow/80 transition-all">
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
 
-              {/* ── PUNTUACIÓ DE LA NIT ──────────────────────────────────────── */}
-              <div className="w-full mt-8 flex flex-col gap-4">
-                <h2 className="font-display font-black uppercase text-lg text-art-text flex items-center gap-2">
-                  <Sunset className="text-art-orange w-5 h-5" />
-                  Puntuació de la nit 🌙
+          {/* BEGUDES VIEW */}
+          {activeTab === 'begudes' && (
+            <div className="animate-fadeIn flex flex-col gap-6">
+              <div className="mb-2">
+                <h2 className="font-display font-black uppercase text-xl sm:text-2xl text-art-text flex items-center gap-2">
+                  <Beer className="text-art-orange" />
+                  {language === 'ca' ? 'Comptador de Begudes' : language === 'en' ? 'Drinks Counter' : "Contador de Bebía's"}
                 </h2>
-                <div className="flex flex-col gap-4">
-                  {TRIP_NIGHTS.map(date => {
-                    const nightData = nightRatings.find(r => r.id === date);
-                    const myRating = nightData?.ratings.find(r => r.memberId === activeMemberId);
-                    const avg = nightData && nightData.ratings.length > 0
-                      ? (nightData.ratings.reduce((s, r) => s + r.score, 0) / nightData.ratings.length).toFixed(1)
-                      : null;
-                    const dateLabel = new Date(date + 'T12:00:00').toLocaleDateString('ca-ES', { weekday: 'long', day: 'numeric', month: 'short' });
-                    return (
-                      <div key={date} className="border-2 border-[#2d2d2d] bg-white p-4 shadow-[3px_3px_0px_0px_#2d2d2d]">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-xs font-black uppercase text-art-text capitalize">{dateLabel}</span>
-                          {avg && (
-                            <span className="bg-art-orange text-white px-2.5 py-0.5 text-sm font-display font-black border-2 border-[#2d2d2d]">
-                              ⭐ {avg} / 10
-                            </span>
-                          )}
+                <p className="text-xs sm:text-sm text-art-text/70 mt-1">
+                  {language === 'ca' ? 'Porta el compte de les begudes de cada membre.' : language === 'en' ? 'Track drinks for each group member.' : "Lleva er cunteo de lo que se meten toos."}
+                </p>
+              </div>
+              {/* ── CONTADOR DE BEGUDES ────────────────────────────────────── */}
+              <div className="bg-[#fdfaf2] border-2 border-[#2d2d2d] p-5 shadow-[4px_4px_0px_0px_#2d2d2d] rounded-none">
+                <div className="flex items-center gap-2 mb-4">
+                  <Beer className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
+                  <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">Contador de begudes 🍻</span>
+                </div>
+                {activeMemberId && (() => {
+                  const myDrinks = drinks.find(d => d.memberId === activeMemberId) || { birres: 0, sangries: 0, cubates: 0 };
+                  return (
+                    <div className="flex flex-wrap gap-3 mb-5">
+                      {([['birres', '🍺', 'Birres'], ['sangries', '🍷', 'Sangries'], ['cubates', '🥃', 'Cubates']] as const).map(([type, emoji, label]) => (
+                        <div key={type} className="flex items-center gap-1.5 border-2 border-[#2d2d2d] bg-white px-3 py-2 shadow-[2px_2px_0px_0px_#2d2d2d]">
+                          <button type="button" onClick={() => handleRemoveDrink(type)} className="font-black text-art-text/40 hover:text-art-text cursor-pointer text-lg leading-none select-none">−</button>
+                          <span className="text-base">{emoji}</span>
+                          <span className="font-display font-black text-xl text-art-text min-w-[1.5ch] text-center">{myDrinks[type as keyof typeof myDrinks] as number}</span>
+                          <span className="text-[10px] uppercase font-black text-art-text/40">{label}</span>
+                          <button type="button" onClick={() => handleAddDrink(type)} className="font-black text-art-orange hover:text-art-orange/70 cursor-pointer text-lg leading-none select-none">+</button>
                         </div>
-                        {/* Individual scores */}
-                        <div className="flex flex-wrap gap-1.5 mb-3">
-                          {members.map(m => {
-                            const r = nightData?.ratings.find(rt => rt.memberId === m.id);
-                            return r ? (
-                              <span key={m.id} className="flex items-center gap-1 text-[10px] border border-[#2d2d2d] px-1.5 py-0.5 bg-[#fdfaf2] font-bold">
-                                <span>{m.avatarUrl}</span>
-                                <span>{r.score}/10</span>
-                              </span>
-                            ) : null;
-                          })}
-                          {(!nightData || nightData.ratings.length === 0) && (
-                            <span className="text-[11px] text-art-text/40 font-mono italic">Ningú ha puntuat encara</span>
-                          )}
+                      ))}
+                    </div>
+                  );
+                })()}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {members
+                    .map(m => {
+                      const d = drinks.find(dr => dr.memberId === m.id) || { birres: 0, sangries: 0, cubates: 0 };
+                      return { member: m, total: d.birres + d.sangries + d.cubates, birres: d.birres, sangries: d.sangries, cubates: d.cubates };
+                    })
+                    .sort((a, b) => b.total - a.total)
+                    .map(({ member, total, birres, sangries, cubates }, idx) => (
+                      <div key={member.id} className={`border-2 border-[#2d2d2d] p-3 flex flex-col gap-1 ${idx === 0 && total > 0 ? 'bg-art-yellow shadow-[3px_3px_0px_0px_#2d2d2d]' : 'bg-white'}`}>
+                        <div className="flex items-center gap-2">
+                          {idx === 0 && total > 0 && <span className="text-xs">🏆</span>}
+                          <span className="text-lg">{member.avatarUrl}</span>
+                          <span className="text-[11px] font-black text-art-text truncate">{member.nickname || member.name}</span>
                         </div>
-                        {/* Rating input */}
-                        {activeMemberId && (
-                          <div className="flex items-center gap-3 border-t border-[#2d2d2d]/10 pt-3">
-                            <span className="text-[10px] font-black text-art-text/50 uppercase">{myRating ? 'Canviar nota:' : 'La teva nota:'}</span>
-                            <input type="range" min={0} max={10} step={1}
-                              defaultValue={myRating?.score ?? 7}
-                              onChange={e => setNightRatingScore(Number(e.target.value))}
-                              className="flex-1 accent-[#FF6321]" />
-                            <span className="font-display font-black text-art-text w-8 text-center">{nightRatingScore}/10</span>
-                            <button type="button" onClick={() => handleSubmitNightRating(date)}
-                              className="border-2 border-[#2d2d2d] bg-art-orange text-white px-3 py-1 text-[10px] font-black shadow-[2px_2px_0px_0px_#2d2d2d] cursor-pointer hover:bg-art-orange/80 transition-all uppercase">
-                              {myRating ? 'Actualitzar' : 'Puntuar'}
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex gap-2 text-[10px] font-mono font-bold text-art-text/60">
+                          <span>🍺{birres}</span><span>🍷{sangries}</span><span>🥃{cubates}</span>
+                        </div>
+                        <span className="text-xs font-display font-black text-art-text">{total} total</span>
                       </div>
-                    );
-                  })}
+                    ))}
                 </div>
               </div>
 
