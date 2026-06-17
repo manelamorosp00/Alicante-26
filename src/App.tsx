@@ -13,7 +13,7 @@ import { SpinningWheel } from './components/SpinningWheel';
 import { ExpenseSplitter } from './components/ExpenseSplitter';
 import { ItineraryTimeline } from './components/ItineraryTimeline';
 import { SightseeingGrid } from './components/SightseeingGrid';
-import { ProfileManager } from './components/ProfileManager';
+import { MyProfile } from './components/MyProfile';
 import { TutorialOverlay } from './components/TutorialOverlay';
 import { Recomanacions } from './components/Recomanacions';
 import { db, auth, googleProvider } from './firebase';
@@ -944,59 +944,22 @@ export default function App() {
             </div>
           </div>
 
-          {/* Controls right-side (Switcher + Language flags) */}
-          <div className="flex items-center flex-wrap justify-center gap-3">
-            
-            {/* Flags toggle */}
-            <div className="flex p-0.5 bg-white rounded-none border-2 border-[#2d2d2d] text-[10px] font-bold">
-              <button
-                type="button"
-                onClick={() => setLanguage('ca')}
-                className={`px-2 py-1 rounded-none transition-all cursor-pointer ${language === 'ca' ? 'bg-art-orange text-white' : 'text-art-text/50 hover:text-art-text'}`}
-              >
-                CAT 🗳️
-              </button>
-              <button
-                type="button"
-                onClick={() => setLanguage('en')}
-                className={`px-2 py-1 rounded-none transition-all cursor-pointer ${language === 'en' ? 'bg-art-orange text-white' : 'text-art-text/50 hover:text-art-text'}`}
-              >
-                ENG 🇬🇧
-              </button>
-              <button
-                type="button"
-                onClick={() => setLanguage('an')}
-                className={`px-2 py-1 rounded-none transition-all cursor-pointer ${language === 'an' ? 'bg-art-orange text-white' : 'text-art-text/50 hover:text-art-text'}`}
-              >
-                AND 💃
-              </button>
-            </div>
-
-            {/* Connected persona + logout */}
-            {activeMember && (
-              <div className="flex items-center gap-2 bg-white border-2 border-[#2d2d2d] pl-2 pr-3 py-1 rounded-none text-xs font-black uppercase text-art-text shadow-[2px_2px_0px_0px_#2d2d2d]">
-                {/* Micro Avatar */}
-                <div className="w-5 h-5 rounded-full border border-[#2d2d2d] bg-white flex items-center justify-center text-xs shadow-3xs shrink-0 select-none">
-                  {activeMember.avatarUrl}
-                </div>
-
-                <span className="font-black text-art-text truncate max-w-[90px]" title={activeMember.nickname}>
-                  {activeMember.nickname || activeMember.name}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="text-[9px] font-black text-art-orange ml-1.5 hover:underline cursor-pointer uppercase tracking-wider flex items-center gap-0.5"
-                  title={language === 'ca' ? 'Tancar sessió' : language === 'en' ? 'Sign out' : 'Salí'}
-                >
-                  <LogOut className="w-3 h-3" />
-                  [{language === 'ca' ? 'Sortir' : language === 'en' ? 'Sign out' : 'Salí'}]
-                </button>
+          {/* Right side: avatar chip → goes to profile */}
+          {activeMember && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('profiles')}
+              className="flex items-center gap-2 bg-white border-2 border-[#2d2d2d] pl-2 pr-3 py-1 rounded-none text-xs font-black uppercase text-art-text shadow-[2px_2px_0px_0px_#2d2d2d] hover:shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-y-[-1px] transition-all cursor-pointer"
+              title={language === 'ca' ? 'El meu perfil' : language === 'en' ? 'My profile' : 'Mi perfil'}
+            >
+              <div className="w-5 h-5 rounded-full border border-[#2d2d2d] bg-white flex items-center justify-center text-xs shrink-0 select-none">
+                {activeMember.avatarUrl}
               </div>
-            )}
-
-          </div>
+              <span className="font-black text-art-text truncate max-w-[90px]">
+                {activeMember.nickname || activeMember.name}
+              </span>
+            </button>
+          )}
 
         </div>
       </header>
@@ -1762,29 +1725,33 @@ export default function App() {
             </div>
           )}
 
-          {/* 6. PROFILES VIEW */}
-          {activeTab === 'profiles' && (
-            <div className="animate-fadeIn">
-              <div className="mb-6">
-                <h2 className="font-display font-black uppercase text-xl sm:text-2xl text-art-text flex items-center gap-2">
-                  <Users className="text-art-orange" />
-                  {t('profilesTitle', language)}
-                </h2>
-                <p className="text-xs sm:text-sm text-art-text/70 mt-1">
-                  {t('profilesSubtitle', language)}
-                </p>
-              </div>
+          {/* 6. MY PROFILE VIEW */}
+          {activeTab === 'profiles' && (() => {
+            const me = members.find(m => m.id === activeMemberId);
+            if (!me) return null;
 
-              <ProfileManager
+            const cuteEmojis = [
+              '🙋‍♀️','🏄‍♂️','🍻','💃','🍕','🕶️','🌴','🍟','🚗','🏖️',
+              '🎧','🎉','👙','🔥','🍹','🥑','💰','📸','🏊‍♂️','💅',
+              '🦄','🔮','🎯','🚀','🍔','🍦','🛸','👻','👑','🌮',
+            ];
+            const availableRoles = [
+              'rolePlanner','roleTreasurer','roleParty','roleChef',
+              'roleDriver','roleDormilon','roleFotografo','roleInfiltrado',
+            ];
+
+            return (
+              <MyProfile
+                me={me}
                 language={language}
-                members={members}
-                activeMemberId={activeMemberId}
-                onSelectMember={(id) => setActiveMemberId(id)}
-                onUpdateMember={handleUpdateMember}
-                onAddMember={handleAddMember}
+                cuteEmojis={cuteEmojis}
+                availableRoles={availableRoles}
+                onUpdate={(fields) => handleUpdateMember(me.id, fields)}
+                onLanguageChange={setLanguage}
+                onLogout={handleLogout}
               />
-            </div>
-          )}
+            );
+          })()}
 
         </div>
 
@@ -1840,7 +1807,7 @@ export default function App() {
                   { tab: 'recomanacions' as const, icon: <Compass className="w-4 h-4" />, label: language === 'ca' ? 'Recomanacions' : language === 'en' ? 'Tips'     : 'Recomendaciones' },
                   { tab: 'sightseeing'   as const, icon: <MapPin  className="w-4 h-4" />, label: language === 'ca' ? 'Sightseeing'   : language === 'en' ? 'Places'   : 'Turismo'         },
                   { tab: 'games'         as const, icon: <Dices   className="w-4 h-4" />, label: language === 'ca' ? 'Jocs'          : language === 'en' ? 'Games'    : 'Juegos'           },
-                  { tab: 'profiles'      as const, icon: <Users   className="w-4 h-4" />, label: language === 'ca' ? 'Perfils'       : language === 'en' ? 'Profiles' : 'Perfiles'         },
+                  { tab: 'profiles'      as const, icon: <Users   className="w-4 h-4" />, label: language === 'ca' ? 'Perfil'        : language === 'en' ? 'Profile'  : 'Perfil'         },
                 ] as const).map(({ tab, icon, label }) => {
                   const isActive = activeTab === tab;
                   return (
