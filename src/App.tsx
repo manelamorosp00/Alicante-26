@@ -45,7 +45,8 @@ import {
   Star,
   Beer,
   Wine,
-  GlassWater
+  GlassWater,
+  MoreHorizontal
 } from 'lucide-react';
 
 
@@ -57,6 +58,7 @@ export default function App() {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null | undefined>(undefined); // undefined = loading
   const [authLoading, setAuthLoading] = useState(false);
   const [showWhoAreYou, setShowWhoAreYou] = useState(false); // Modal "Qui ets tu?"
+  const [showMoreMenu, setShowMoreMenu] = useState(false); // Mobile "Més" drawer
   const [showTutorial, setShowTutorial] = useState(false); // Tutorial onboarding
   // Profile setup (between "Qui ets tu?" and tutorial)
   const [showProfileSetup, setShowProfileSetup] = useState(false);
@@ -1015,10 +1017,10 @@ export default function App() {
       </header>
 
       {/* Main Container tabs layout */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 flex flex-col gap-6">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 pb-24 sm:pb-6 flex flex-col gap-6">
 
         {/* Dynamic navigation bar inside app */}
-        <nav className="flex items-center gap-1.5 overflow-x-auto py-1.5 bg-[#fdfaf2] border-2 border-[#2d2d2d] rounded-none p-1.5 shadow-[4px_4px_0px_0px_#2d2d2d] max-w-full justify-start md:justify-center">
+        <nav className="hidden sm:flex items-center gap-1.5 overflow-x-auto py-1.5 bg-[#fdfaf2] border-2 border-[#2d2d2d] rounded-none p-1.5 shadow-[4px_4px_0px_0px_#2d2d2d] max-w-full justify-start md:justify-center">
           {(['dashboard', 'expenses', 'plans', 'recomanacions', 'sightseeing', 'games', 'begudes', 'profiles'] as const).map((tab) => {
             const labelKey = `nav${tab.charAt(0).toUpperCase() + tab.slice(1)}`;
             const isTabSelected = activeTab === tab;
@@ -1780,6 +1782,83 @@ export default function App() {
           )}
 
         </div>
+
+        {/* ── MOBILE BOTTOM NAV ─────────────────────────────────────────────── */}
+        <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#2d2d2d] border-t-4 border-black flex items-end justify-around px-1" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))', paddingTop: '8px' }}>
+          {([
+            { tab: 'dashboard'  as const, icon: <Sunset   className="w-5 h-5" />, label: language === 'ca' ? 'Inici'    : language === 'en' ? 'Home'     : 'Inicio'  },
+            { tab: 'expenses'   as const, icon: <Coins    className="w-5 h-5" />, label: language === 'ca' ? 'Despeses' : language === 'en' ? 'Expenses' : 'Gastos'  },
+            { tab: 'plans'      as const, icon: <Calendar className="w-5 h-5" />, label: language === 'ca' ? 'Plans'    : language === 'en' ? 'Plans'    : 'Planes'  },
+            { tab: 'begudes'    as const, icon: <Beer     className="w-5 h-5" />, label: language === 'ca' ? 'Begudes'  : language === 'en' ? 'Drinks'   : 'Bebidas' },
+          ] as const).map(({ tab, icon, label }) => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => { setActiveTab(tab); setShowMoreMenu(false); }}
+                className="flex flex-col items-center gap-0.5 px-3 py-2 min-w-[56px] select-none transition-colors"
+                style={{ color: isActive ? '#f59e0b' : 'rgba(255,255,255,0.45)' }}
+              >
+                {icon}
+                {isActive && <span className="block w-1 h-1 rounded-full" style={{ background: '#f59e0b' }} />}
+                <span className="text-[8px] font-black uppercase tracking-wide leading-none mt-0.5">{label}</span>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setShowMoreMenu(prev => !prev)}
+            className="flex flex-col items-center gap-0.5 px-3 py-2 min-w-[56px] select-none transition-colors"
+            style={{ color: (['recomanacions','sightseeing','games','profiles'] as const).some(t => t === activeTab) || showMoreMenu ? '#f59e0b' : 'rgba(255,255,255,0.45)' }}
+          >
+            <MoreHorizontal className="w-5 h-5" />
+            {(['recomanacions','sightseeing','games','profiles'] as const).some(t => t === activeTab) && <span className="block w-1 h-1 rounded-full" style={{ background: '#f59e0b' }} />}
+            <span className="text-[8px] font-black uppercase tracking-wide leading-none mt-0.5">{language === 'ca' ? 'Més' : language === 'en' ? 'More' : 'Más'}</span>
+          </button>
+        </nav>
+
+        {/* ── MOBILE "MÉS" SHEET ────────────────────────────────────────────── */}
+        {showMoreMenu && (
+          <div
+            className="sm:hidden fixed inset-0 z-40"
+            onClick={() => setShowMoreMenu(false)}
+          >
+            <div
+              className="absolute left-0 right-0 bg-[#2d2d2d] border-t-4 border-black p-4 animate-fadeIn"
+              style={{ bottom: 'calc(56px + max(8px, env(safe-area-inset-bottom)))' }}
+              onClick={e => e.stopPropagation()}
+            >
+              <span className="text-[9px] uppercase font-black text-white/30 tracking-widest mb-3 block">{language === 'ca' ? 'Més seccions' : language === 'en' ? 'More sections' : 'Más secciones'}</span>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { tab: 'recomanacions' as const, icon: <Compass className="w-4 h-4" />, label: language === 'ca' ? 'Recomanacions' : language === 'en' ? 'Tips'     : 'Recomendaciones' },
+                  { tab: 'sightseeing'   as const, icon: <MapPin  className="w-4 h-4" />, label: language === 'ca' ? 'Sightseeing'   : language === 'en' ? 'Places'   : 'Turismo'         },
+                  { tab: 'games'         as const, icon: <Dices   className="w-4 h-4" />, label: language === 'ca' ? 'Jocs'          : language === 'en' ? 'Games'    : 'Juegos'           },
+                  { tab: 'profiles'      as const, icon: <Users   className="w-4 h-4" />, label: language === 'ca' ? 'Perfils'       : language === 'en' ? 'Profiles' : 'Perfiles'         },
+                ] as const).map(({ tab, icon, label }) => {
+                  const isActive = activeTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => { setActiveTab(tab); setShowMoreMenu(false); }}
+                      className="flex items-center gap-3 px-4 py-3 border-2 font-black uppercase text-xs tracking-wide transition-all select-none"
+                      style={isActive
+                        ? { background: '#f59e0b', borderColor: '#f59e0b', color: '#2d2d2d' }
+                        : { background: 'transparent', borderColor: 'rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)' }
+                      }
+                    >
+                      {icon}
+                      <span>{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
 
       </main>
 
