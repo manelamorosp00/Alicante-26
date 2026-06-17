@@ -127,6 +127,9 @@ export default function App() {
 
   // Auth state listener — detects login/logout automatically
   useEffect(() => {
+    // Set local persistence once on load (must be done before any sign-in attempt)
+    setPersistence(auth, browserLocalPersistence).catch((e) => console.warn('[auth] setPersistence:', e));
+
     // Handle redirect result (when coming back from signInWithRedirect fallback)
     getRedirectResult(auth)
       .then((result) => {
@@ -165,23 +168,21 @@ export default function App() {
   const handleGoogleLogin = async () => {
     setAuthLoading(true);
     try {
-      // Ensure auth state survives page reloads/redirects
-      await setPersistence(auth, browserLocalPersistence);
-      // signInWithPopup works on mobile when triggered by a direct user tap
+      // No await before signInWithPopup — preserves the browser's user-gesture context
+      // so the popup is never blocked. (setPersistence is called once on app init above.)
       await signInWithPopup(auth, googleProvider);
       setAuthLoading(false);
     } catch (err: any) {
-      // If popup was blocked by the browser, fall back to redirect
       if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
+        // Only fall back to redirect if the popup was explicitly blocked
         try {
           await signInWithRedirect(auth, googleProvider);
-          // Page will reload; getRedirectResult above will capture the result
         } catch (redirectErr) {
           console.error('[auth] Redirect fallback error:', redirectErr);
           setAuthLoading(false);
         }
       } else {
-        console.error('[auth] Login error:', err);
+        console.error('[auth] Login error:', err?.code, err?.message);
         setAuthLoading(false);
       }
     }
