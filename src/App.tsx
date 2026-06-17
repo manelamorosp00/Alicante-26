@@ -1018,7 +1018,7 @@ export default function App() {
 
             const tabLabel = () => {
               if (tab === 'begudes') {
-                return language === 'ca' ? 'Begudes' : language === 'en' ? 'Drinks' : "Bebía's";
+                return language === 'ca' ? 'Begudes' : language === 'en' ? 'Drinks' : "Begudes";
               }
               if (tab === 'recomanacions') {
                 return language === 'ca' ? 'Recomanacions' : language === 'en' ? 'Recommendations' : 'Recomanasione\'';
@@ -1619,16 +1619,20 @@ export default function App() {
 
 
 
+            </div>
+          )}
+
+
           {/* BEGUDES VIEW */}
           {activeTab === 'begudes' && (
             <div className="animate-fadeIn flex flex-col gap-6">
               <div className="mb-2">
                 <h2 className="font-display font-black uppercase text-xl sm:text-2xl text-art-text flex items-center gap-2">
                   <Beer className="text-art-orange" />
-                  {language === 'ca' ? 'Comptador de Begudes' : language === 'en' ? 'Drinks Counter' : "Contador de Bebía's"}
+                  {language === 'ca' ? 'Comptador de Begudes' : language === 'en' ? 'Drinks Counter' : 'Contador de Begudes'}
                 </h2>
                 <p className="text-xs sm:text-sm text-art-text/70 mt-1">
-                  {language === 'ca' ? 'Porta el compte de les begudes de cada membre.' : language === 'en' ? 'Track drinks for each group member.' : "Lleva er cunteo de lo que se meten toos."}
+                  {language === 'ca' ? 'Porta el compte de les begudes de cada membre.' : language === 'en' ? 'Track drinks for each group member.' : 'Lleva er cunteo de lo que se meten toos.'}
                 </p>
               </div>
               {/* ── CONTADOR DE BEGUDES ────────────────────────────────────── */}
