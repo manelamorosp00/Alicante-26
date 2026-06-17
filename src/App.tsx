@@ -87,6 +87,7 @@ export default function App() {
   // New features state
   const [drinks, setDrinks] = useState<DrinkCount[]>([]);
   const [alacantTemp, setAlacantTemp] = useState<number | null>(null);
+  const [weatherCode, setWeatherCode] = useState<number | null>(null);
 
   // 4. Tab selection state
   const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'plans' | 'recomanacions' | 'sightseeing' | 'games' | 'begudes' | 'profiles'>('dashboard');
@@ -352,7 +353,7 @@ export default function App() {
 
   // Compute countdown to June 22th, 2026
   useEffect(() => {
-    const targetDate = new Date('2026-06-22T12:00:00');
+    const targetDate = new Date('2026-06-22T00:00:00');
     
     const calculateCountdown = () => {
       const now = new Date();
@@ -381,7 +382,7 @@ export default function App() {
   useEffect(() => {
     fetch('https://api.open-meteo.com/v1/forecast?latitude=38.3453&longitude=-0.4831&current_weather=true')
       .then(r => r.json())
-      .then(data => setAlacantTemp(Math.round(data.current_weather?.temperature ?? null)))
+      .then(data => { setAlacantTemp(Math.round(data.current_weather?.temperature ?? null)); setWeatherCode(data.current_weather?.weathercode ?? null); })
       .catch(() => {});
   }, []);
 
@@ -1048,171 +1049,70 @@ export default function App() {
                 </div>
               )}
               
-              {/* Welcome Jumbotron Banner */}
-              <div className="bg-[#2d2d2d] rounded-none p-6 sm:p-8 text-white relative overflow-hidden shadow-[6px_6px_0px_0px_#FF6321] border-2 border-[#2d2d2d]">
-                
-                <div className="relative z-10 max-w-xl">
-                  <span className="text-[10px] uppercase tracking-wider font-bold bg-art-orange px-2.5 py-1 border-2 border-[#2d2d2d] whitespace-nowrap text-white">
-                    {t('tripDates', language)}
-                  </span>
-                  
-                  <h2 className="text-2xl sm:text-4xl font-display font-black uppercase mt-3 tracking-tight text-white">
-                    {language === 'ca' 
-                      ? 'Que comenci l\'aventura d\'Alacant!' 
-                      : language === 'en' 
-                      ? 'Let the Alicante adventure unfold!' 
-                      : '¡Que de empiese er relío flamenquito en Alacant!'}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-white/90 leading-relaxed mt-2 font-medium">
-                    {language === 'ca' 
-                      ? `Hola ${activeMember?.nickname || activeMember?.name}! Estàs a la central col·lectiva. Sota tens els detalls del xalet d'Airbnb i els dies restants.` 
-                      : language === 'en' 
-                      ? `Hi ${activeMember?.nickname || activeMember?.name}! You are tuned into the group headquarters. Below is our Airbnb booking info and countdown.` 
-                      : `¡Hola ${activeMember?.nickname || activeMember?.name}! Çintonisa con la peñita. Abaho tiene' er Airbnb de susharra y los día' de rampa.`}
-                  </p>
-                </div>
-              </div>
-
-              {/* Countdown & Quick summary items */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
-                {/* Real-time Countdown timer card */}
-                <div className="bg-[#fdfaf2] border-2 border-[#2d2d2d] p-6 shadow-[4px_4px_0px_0px_#2d2d2d] flex flex-col justify-between gap-4 rounded-none">
-                  <div>
-                    <h3 className="text-art-text font-black uppercase tracking-wider text-[10px]">{t('daysRemaining', language)}</h3>
-                    <div className="flex gap-2 items-center mt-3">
-                      <div className="text-center">
-                        <span className="text-3xl font-display font-black text-art-text">{timeLeft.days}</span>
-                        <span className="text-[9px] uppercase font-mono font-black text-art-text/60 block mt-0.5">{language === 'ca' ? 'Dies' : language === 'en' ? 'Days' : 'Día\''}</span>
-                      </div>
-                      <span className="text-art-text font-black text-xl mb-4">:</span>
-                      <div className="text-center">
-                        <span className="text-3xl font-display font-black text-art-text">{String(timeLeft.hours).padStart(2, '0')}</span>
-                        <span className="text-[9px] uppercase font-mono font-black text-art-text/60 block mt-0.5">{language === 'ca' ? 'Hor' : language === 'en' ? 'Hrs' : 'Hor\''}</span>
-                      </div>
-                      <span className="text-art-text font-black text-xl mb-4">:</span>
-                      <div className="text-center">
-                        <span className="text-3xl font-display font-black text-art-text">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                        <span className="text-[9px] uppercase font-mono font-black text-art-text/60 block mt-0.5">Min</span>
-                      </div>
-                      <span className="text-art-text font-black text-xl mb-4">:</span>
-                      <div className="text-center">
-                        <span className="text-3xl font-display font-black text-art-text">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                        <span className="text-[9px] uppercase font-mono font-black text-art-text/60 block mt-0.5">Seg</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-[11px] font-mono font-black text-art-text/60">
-                    {language === 'ca' ? 'Data d\'inici: 22 de Juny del 2026' : language === 'en' ? 'Start date: June 22th, 2026' : 'Pistoletaso: 22 de Hunio d\'Alacant'}
-                  </p>
-                </div>
-
-                {/* Airbnb Integration Link card */}
-                <div className="bg-white border-2 border-[#2d2d2d] p-6 shadow-[4px_4px_0px_0px_#2d2d2d] rounded-none md:col-span-2 flex flex-col sm:flex-row gap-5 items-start sm:items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <span className="text-white bg-art-orange font-black border-2 border-[#2d2d2d] px-2.5 py-0.5 text-[9px] uppercase tracking-wider block w-fit rounded-none">
-                      RESERVA AIRBNB
-                    </span>
-                    <h3 className="font-display font-black uppercase text-base md:text-lg text-art-text mt-3">
-                      {t('airbnbCardTitle', language)}
-                    </h3>
-                    <p className="text-xs text-art-text/75 mt-1 font-medium">
-                      {t('airbnbCardDesc', language)}
-                    </p>
-                    <p className="text-[11px] text-art-text/50 font-mono font-bold italic mt-2.5 truncate">
-                      https://www.airbnb.com/rooms/984807263791129906
-                    </p>
-                  </div>
-
-                  <a
-                    href="https://www.airbnb.com/rooms/984807263791129906"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="shrink-0 w-full sm:w-auto py-3 px-5 border-2 border-[#2d2d2d] bg-art-yellow hover:bg-art-yellow/85 text-art-text font-black text-xs sm:text-sm shadow-[2px_2px_0px_0px_#2d2d2d] hover:translate-y-[-1px] flex items-center justify-center gap-2 cursor-pointer select-none transition-all rounded-none"
-                  >
-                    <span>{t('viewOnAirbnb', language)}</span>
-                    <ExternalLink className="w-4 h-4 text-art-orange" />
-                  </a>
-                </div>
-
-              </div>
-
-              {/* ── STATS 2×2 ──────────────────────────────────────────────── */}
+              {/* ── KPIs ── */}
               <div className="grid grid-cols-2 gap-3">
 
-                {/* Temperatura */}
+                {/* Temperatura + temps */}
                 <div className="bg-art-orange border-2 border-[#2d2d2d] p-4 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-3">
                   <Thermometer className="text-white w-7 h-7 shrink-0" />
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-[9px] uppercase font-black text-white/70 tracking-wider block">Alacant ara</span>
-                    <span className="text-xl font-display font-black text-white">
+                    <span className="text-xl font-display font-black text-white leading-none">
                       {alacantTemp !== null ? `${alacantTemp}°C` : '—'}
                     </span>
+                    {weatherCode !== null && (
+                      <span className="text-[10px] text-white/80 block mt-0.5">
+                        {weatherCode === 0 ? '☀️ Cel serè' : weatherCode <= 3 ? '⛅ Ennuvolat' : weatherCode <= 48 ? '🌫️ Boira' : weatherCode <= 67 ? '🌧️ Pluja' : weatherCode <= 82 ? '🌦️ Ruixats' : '⛈️ Tempesta'}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Total despeses */}
+                {/* Despeses */}
                 <div className="bg-white border-2 border-[#2d2d2d] p-4 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-3">
                   <Coins className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('statsTotalExpenses', language)}</span>
-                    <span className="text-base font-display font-black text-art-text">
+                    <span className="text-base font-display font-black text-art-text leading-none">
                       {expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                     </span>
                   </div>
                 </div>
 
-                {/* Plans */}
+                {/* Plans programats */}
                 <div className="bg-white border-2 border-[#2d2d2d] p-4 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-3">
                   <Calendar className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('statsPlansCount', language)}</span>
-                    <span className="text-xl font-display font-black text-art-text">{plans.length}</span>
+                    <span className="text-xl font-display font-black text-art-text leading-none">{plans.length}</span>
                   </div>
                 </div>
 
-                {/* Membres */}
-                <div className="bg-white border-2 border-[#2d2d2d] p-4 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-3">
-                  <Users className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
-                  <div>
-                    <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('statsMembers', language)}</span>
-                    <span className="text-xl font-display font-black text-art-text">{members.length}</span>
+                {/* Countdown (fins el 22/06) → Amics units (durant el viatge) */}
+                {new Date() < new Date('2026-06-22T00:00:00') ? (
+                  <div className="bg-[#fdfaf2] border-2 border-[#2d2d2d] p-4 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex flex-col justify-center gap-1">
+                    <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('daysRemaining', language)}</span>
+                    <div className="flex items-baseline gap-1 font-display font-black text-art-text">
+                      <span className="text-2xl">{timeLeft.days}</span>
+                      <span className="text-[10px] font-mono">d</span>
+                      <span className="text-lg mx-0.5">:</span>
+                      <span className="text-2xl">{String(timeLeft.hours).padStart(2,'0')}</span>
+                      <span className="text-[10px] font-mono">h</span>
+                      <span className="text-lg mx-0.5">:</span>
+                      <span className="text-2xl">{String(timeLeft.minutes).padStart(2,'0')}</span>
+                      <span className="text-[10px] font-mono">m</span>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="bg-white border-2 border-[#2d2d2d] p-4 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-3">
+                    <Users className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('statsMembers', language)}</span>
+                      <span className="text-xl font-display font-black text-art-text leading-none">{members.filter(m => !!m.googleUid).length}/{members.length}</span>
+                    </div>
+                  </div>
+                )}
 
-              </div>
-
-              {/* ── QUI HA ENTRAT ────────────────────────────────────────────── */}
-              <div className="bg-[#fdfaf2] border-2 border-[#2d2d2d] p-5 shadow-[4px_4px_0px_0px_#2d2d2d] rounded-none">
-                <div className="flex items-center gap-2 mb-4">
-                  <Users className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
-                  <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">
-                    {language === 'ca' ? 'Qui ha entrat' : language === 'en' ? 'Who joined' : 'Quién ha entrado'}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {members.map(m => {
-                    const hasJoined = !!m.googleUid;
-                    return (
-                      <div
-                        key={m.id}
-                        className={`flex items-center gap-2 border-2 px-3 py-2 text-xs font-black uppercase tracking-wide ${
-                          hasJoined
-                            ? 'border-[#2d2d2d] bg-white shadow-[2px_2px_0px_0px_#2d2d2d] text-art-text'
-                            : 'border-[#2d2d2d]/30 bg-white/50 text-art-text/30'
-                        }`}
-                      >
-                        <span className={`text-base ${!hasJoined ? 'grayscale opacity-40' : ''}`}>{m.avatarUrl}</span>
-                        <span>{m.nickname || m.name}</span>
-                        {hasJoined
-                          ? <Check className="w-3.5 h-3.5 text-green-600 shrink-0" />
-                          : <span className="text-[9px] font-mono text-art-text/30 normal-case">pendent</span>
-                        }
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
 
               {/* ── PROPER PLA DESTACAT ──────────────────────────────────────── */}
@@ -1234,7 +1134,7 @@ export default function App() {
                       <div>
                         <h4 className="font-display font-black text-art-text text-base uppercase tracking-tight leading-tight">{nextPlan.title}</h4>
                         {nextPlan.description && (
-                          <p className="text-[11px] text-art-text/60 mt-1 font-mono">{nextPlan.description}</p>
+                          <p className="text-[11px] text-art-text/60 mt-1 font-mono line-clamp-2">{nextPlan.description}</p>
                         )}
                       </div>
                       {nextPlan.date && (
@@ -1256,6 +1156,28 @@ export default function App() {
                   </div>
                 );
               })()}
+
+              {/* ── ALLOTJAMENT (compacte, al final) ─────────────────────────── */}
+              <div className="bg-white border-2 border-[#2d2d2d] px-4 py-3 shadow-[2px_2px_0px_0px_#2d2d2d] rounded-none flex items-center gap-3 justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-white bg-art-orange font-black border-2 border-[#2d2d2d] px-2 py-0.5 text-[8px] uppercase tracking-wider shrink-0">
+                    Airbnb
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-black text-art-text text-xs uppercase truncate">{t('airbnbCardTitle', language)}</p>
+                    <p className="text-[10px] text-art-text/50 font-mono truncate">{t('airbnbCardDesc', language)}</p>
+                  </div>
+                </div>
+                <a
+                  href="https://www.airbnb.com/rooms/984807263791129906"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="shrink-0 py-1.5 px-3 border-2 border-[#2d2d2d] bg-art-yellow text-art-text font-black text-[10px] uppercase shadow-[2px_2px_0px_0px_#2d2d2d] hover:translate-y-[-1px] flex items-center gap-1 cursor-pointer transition-all rounded-none"
+                >
+                  {t('viewOnAirbnb', language)}
+                  <ExternalLink className="w-3 h-3 text-art-orange" />
+                </a>
+              </div>
 
             </div>
           )}
@@ -1288,16 +1210,6 @@ export default function App() {
           {/* 3. PLANS VIEW */}
           {activeTab === 'plans' && (
             <div className="animate-fadeIn">
-              <div className="mb-6">
-                <h2 className="font-display font-black uppercase text-xl sm:text-2xl text-art-text flex items-center gap-2">
-                  <Calendar className="text-art-orange" />
-                  {t('plansTitle', language)}
-                </h2>
-                <p className="text-xs sm:text-sm text-art-text/70 mt-1">
-                  {t('plansSubtitle', language)}
-                </p>
-              </div>
-
               <ItineraryTimeline
                 language={language}
                 members={members}
