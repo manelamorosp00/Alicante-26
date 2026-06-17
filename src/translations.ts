@@ -428,6 +428,38 @@ export const translations: Record<string, Record<Language, string>> = {
     en: "Official Role",
     an: "El cargo o susharra",
   },
+
+  // Weather conditions
+  weatherClear: {
+    ca: "☀️ Cel serè",
+    en: "☀️ Clear sky",
+    an: "☀️ Cielo despejao",
+  },
+  weatherCloudy: {
+    ca: "⛅ Ennuvolat",
+    en: "⛅ Partly cloudy",
+    an: "⛅ Nublaíllo",
+  },
+  weatherFoggy: {
+    ca: "🌫️ Boira",
+    en: "🌫️ Fog",
+    an: "🌫️ Nieblina",
+  },
+  weatherRainy: {
+    ca: "🌧️ Pluja",
+    en: "🌧️ Rain",
+    an: "🌧️ Lloviendo",
+  },
+  weatherShowers: {
+    ca: "🌦️ Ruixats",
+    en: "🌦️ Showers",
+    an: "🌦️ Chispeando",
+  },
+  weatherStorm: {
+    ca: "⛈️ Tempesta",
+    en: "⛈️ Storm",
+    an: "⛈️ Tormentón",
+  },
 } as const;
 
 export const t = (key: keyof typeof translations, lang: Language): string => {

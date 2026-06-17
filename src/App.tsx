@@ -1062,7 +1062,7 @@ export default function App() {
                     </span>
                     {weatherCode !== null && (
                       <span className="text-[10px] text-white/80 block mt-0.5">
-                        {weatherCode === 0 ? '☀️ Cel serè' : weatherCode <= 3 ? '⛅ Ennuvolat' : weatherCode <= 48 ? '🌫️ Boira' : weatherCode <= 67 ? '🌧️ Pluja' : weatherCode <= 82 ? '🌦️ Ruixats' : '⛈️ Tempesta'}
+                        {t(weatherCode === 0 ? 'weatherClear' : weatherCode <= 3 ? 'weatherCloudy' : weatherCode <= 48 ? 'weatherFoggy' : weatherCode <= 67 ? 'weatherRainy' : weatherCode <= 82 ? 'weatherShowers' : 'weatherStorm', language)}
                       </span>
                     )}
                   </div>
@@ -1745,39 +1745,6 @@ export default function App() {
 
 
       </main>
-
-      {/* Page Footer */}
-      <footer className="bg-[#2d2d2d] text-white/70 border-t-4 border-[#2d2d2d] py-6 mt-8">
-        <div className="w-full max-w-7xl mx-auto px-4 flex flex-col md:flex-row gap-4 items-center justify-between text-xs text-center md:text-left">
-          
-          <div>
-            <p className="font-black text-white uppercase tracking-wider text-sm">
-              {t('allRights', language)} — Alacant 2026 🌴☀️
-            </p>
-            <p className="text-[10px] text-white/50 mt-1.5 font-mono">
-              {language === 'ca' 
-                ? 'Control de gastos compartits gratuït i 100% lliure d\'anuncis.' 
-                : language === 'en' 
-                ? 'Your secure, non-commercial offline-first trip coordinator hub.' 
-                : 'Er bote flamenquito y el arrame de biles grato, çin publicidá\'.'}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] uppercase font-bold text-white/40">{language === 'ca' ? 'Ràpid:' : language === 'en' ? 'Link:' : 'Ar jale:'}</span>
-            <a
-              href="https://www.airbnb.com/rooms/984807263791129906"
-              target="_blank"
-              rel="noreferrer"
-              className="text-art-yellow hover:text-art-yellow/80 underline decoration-art-yellow/20 underline-offset-4 font-black uppercase tracking-wider flex items-center gap-1 select-none transition-all active:scale-95"
-            >
-              <span>Airbnb Original</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
-
-        </div>
-      </footer>
 
     </div>
   );

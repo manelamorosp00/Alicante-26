@@ -221,7 +221,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
               {/* Favorites toggle */}
               <button type="button" onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
                 className={`p-2 border-2 border-[#2d2d2d] shrink-0 transition-all cursor-pointer ${showFavoritesOnly ? 'bg-art-yellow text-art-text' : 'bg-white text-art-text/60 hover:text-art-text'}`}
-                title={language === 'ca' ? 'Preferits' : 'Favorites'}>
+                title={language === 'ca' ? 'Preferits' : language === 'en' ? 'Favorites' : 'Preferíos'}>
                 <Star className={`w-4 h-4 ${showFavoritesOnly ? 'fill-art-text' : ''}`} />
               </button>
 
@@ -269,13 +269,13 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                 <div>
                   <label className="block font-black uppercase tracking-wider text-art-text/60 mb-1 text-[10px]">{t('planTitleField', language)}</label>
                   <input type="text" required value={title} onChange={e => setTitle(e.target.value)}
-                    placeholder={language === 'ca' ? 'ex: Sopar al Port' : 'e.g.: Sunset beers'}
+                    placeholder={language === 'ca' ? 'ex: Sopar al Port' : language === 'en' ? 'e.g.: Sunset beers' : 'ej: Cenita en er Puerto'}
                     className="w-full px-3 py-2 border-2 border-[#2d2d2d] bg-white font-medium focus:outline-none focus:border-art-orange" />
                 </div>
                 <div>
                   <label className="block font-black uppercase tracking-wider text-art-text/60 mb-1 text-[10px]">{t('planDescField', language)}</label>
                   <textarea required value={description} onChange={e => setDescription(e.target.value)} rows={2}
-                    placeholder={language === 'ca' ? 'Explica la idea...' : 'Describe the plan...'}
+                    placeholder={language === 'ca' ? 'Explica la idea...' : language === 'en' ? 'Describe the plan...' : 'Cuéntale la movía...'}
                     className="w-full px-3 py-2 border-2 border-[#2d2d2d] bg-white font-medium focus:outline-none focus:border-art-orange" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -301,7 +301,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block font-black uppercase tracking-wider text-art-text/60 mb-1 text-[10px]">
-                      {language === 'ca' ? 'Categoria' : 'Category'}
+                      {language === 'ca' ? 'Categoria' : language === 'en' ? 'Category' : 'Tipo'}
                     </label>
                     <select value={category} onChange={e => setCategory(e.target.value)}
                       className="w-full px-2 py-2 border-2 border-[#2d2d2d] bg-white font-bold focus:outline-none cursor-pointer text-xs">
@@ -311,7 +311,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                   </div>
                   <div>
                     <label className="block font-black uppercase tracking-wider text-art-text/60 mb-1 text-[10px]">
-                      {language === 'ca' ? 'Preu (opcional)' : 'Price (opt.)'}
+                      {language === 'ca' ? 'Preu (opcional)' : language === 'en' ? 'Price (opt.)' : 'Precio (palosillo)'}
                     </label>
                     <input type="text" value={estimatedPrice} onChange={e => setEstimatedPrice(e.target.value)}
                       placeholder="ex: 15€/pp"
@@ -423,7 +423,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                           {plan.requiresReservation && (
                             <span className="bg-amber-50 border border-amber-400 text-amber-700 font-mono font-bold px-2 py-0.5 text-[9px] flex items-center gap-1">
                               <BookmarkCheck className="w-3 h-3" />
-                              {language === 'ca' ? 'Reserva' : 'Reservation'}
+                              {language === 'ca' ? 'Reserva' : language === 'en' ? 'Reservation' : "Rese'va"}
                             </span>
                           )}
                           {plan.estimatedPrice && (
@@ -459,7 +459,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                               <Star className={`w-4 h-4 ${isFavorited ? 'fill-art-yellow text-art-yellow' : ''}`} />
                             </button>
                             <button type="button"
-                              onClick={() => { if (window.confirm(language === 'ca' ? 'Eliminar?' : 'Delete?')) onDeletePlan(plan.id); }}
+                              onClick={() => { if (window.confirm(language === 'ca' ? 'Eliminar?' : language === 'en' ? 'Delete?' : 'Borrarlo?')) onDeletePlan(plan.id); }}
                               className="p-1.5 border-2 border-[#2d2d2d] bg-white text-art-text/30 hover:text-red-500 hover:border-red-300 cursor-pointer transition-all shadow-[1px_1px_0px_0px_#2d2d2d]">
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
