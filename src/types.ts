@@ -114,5 +114,3 @@ export interface PlaylistSong {
   addedBy: string;     // Member ID
   addedAt: string;     // ISO timestamp
 }
-At: string;     // ISO timestamp
-}
