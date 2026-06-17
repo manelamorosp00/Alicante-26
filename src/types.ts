@@ -82,3 +82,37 @@ export interface GameProp {
   description: Record<Language, string>;
   type: 'card' | 'drinking' | 'challenge' | 'social';
 }
+
+// Drink counter per member
+export interface DrinkCount {
+  memberId: string;
+  birres: number;
+  sangries: number;
+  cubates: number;
+}
+
+// Bingo de Fogueres
+export interface BingoCell {
+  id: string;
+  text: string;
+  checkedBy: string[]; // Member IDs who checked this cell
+  custom?: boolean;    // true if added by a user
+}
+
+// Night rating (one per night date)
+export interface NightRating {
+  id: string;       // date string e.g. '2026-06-22'
+  date: string;
+  ratings: { memberId: string; score: number }[];
+}
+
+// Playlist song entry
+export interface PlaylistSong {
+  id: string;
+  spotifyUrl: string;
+  title: string;
+  addedBy: string;     // Member ID
+  addedAt: string;     // ISO timestamp
+}
+At: string;     // ISO timestamp
+}
