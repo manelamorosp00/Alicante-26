@@ -386,15 +386,35 @@ export default function App() {
     const updated: DrinkCount = existing
       ? { ...existing, [type]: (existing[type] || 0) + 1 }
       : { memberId: activeMemberId, birres: 0, sangries: 0, cubates: 0, [type]: 1 };
-    await setDoc(doc(db, 'drinks', activeMemberId), updated);
+    // Optimistic update so buttons feel instant
+    setDrinks(prev => prev.some(d => d.memberId === activeMemberId)
+      ? prev.map(d => d.memberId === activeMemberId ? updated : d)
+      : [...prev, updated]);
+    try {
+      await setDoc(doc(db, 'drinks', activeMemberId), updated);
+    } catch (err) {
+      console.error('[drinks] Error adding drink:', err);
+      // Revert on failure
+      setDrinks(prev => existing
+        ? prev.map(d => d.memberId === activeMemberId ? existing! : d)
+        : prev.filter(d => d.memberId !== activeMemberId));
+    }
   };
 
   const handleRemoveDrink = async (type: 'birres' | 'sangries' | 'cubates') => {
     if (!activeMemberId) return;
     const existing = drinks.find(d => d.memberId === activeMemberId);
-    if (!existing || existing[type] <= 0) return;
-    const updated = { ...existing, [type]: existing[type] - 1 };
-    await setDoc(doc(db, 'drinks', activeMemberId), updated);
+    if (!existing || (existing[type] || 0) <= 0) return;
+    const updated = { ...existing, [type]: (existing[type] || 0) - 1 };
+    // Optimistic update
+    setDrinks(prev => prev.map(d => d.memberId === activeMemberId ? updated : d));
+    try {
+      await setDoc(doc(db, 'drinks', activeMemberId), updated);
+    } catch (err) {
+      console.error('[drinks] Error removing drink:', err);
+      // Revert on failure
+      setDrinks(prev => prev.map(d => d.memberId === activeMemberId ? existing! : d));
+    }
   };
 
   // ── Bingo handlers ──────────────────────────────────────────────────────────
@@ -1629,34 +1649,86 @@ export default function App() {
               <div className="mb-2">
                 <h2 className="font-display font-black uppercase text-xl sm:text-2xl text-art-text flex items-center gap-2">
                   <Beer className="text-art-orange" />
-                  {language === 'ca' ? 'Comptador de Begudes' : language === 'en' ? 'Drinks Counter' : 'Contador de Begudes'}
+                  {language === 'ca' ? 'Comptador de Begudes' : language === 'en' ? 'Drinks Counter' : 'Contador de Bebidas'}
                 </h2>
                 <p className="text-xs sm:text-sm text-art-text/70 mt-1">
-                  {language === 'ca' ? 'Porta el compte de les begudes de cada membre.' : language === 'en' ? 'Track drinks for each group member.' : 'Lleva er cunteo de lo que se meten toos.'}
+                  {language === 'ca' ? 'Porta el compte de les begudes de cada membre.' : language === 'en' ? 'Track drinks for each group member.' : 'Lleva la cuenta de las bebidas de cada uno.'}
                 </p>
               </div>
-              {/* ── CONTADOR DE BEGUDES ────────────────────────────────────── */}
-              <div className="bg-[#fdfaf2] border-2 border-[#2d2d2d] p-5 shadow-[4px_4px_0px_0px_#2d2d2d] rounded-none">
-                <div className="flex items-center gap-2 mb-4">
-                  <Beer className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
-                  <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">Contador de begudes 🍻</span>
-                </div>
-                {activeMemberId && (() => {
-                  const myDrinks = drinks.find(d => d.memberId === activeMemberId) || { birres: 0, sangries: 0, cubates: 0 };
-                  return (
-                    <div className="flex flex-wrap gap-3 mb-5">
-                      {([['birres', '🍺', 'Birres'], ['sangries', '🍷', 'Sangries'], ['cubates', '🥃', 'Cubates']] as const).map(([type, emoji, label]) => (
-                        <div key={type} className="flex items-center gap-1.5 border-2 border-[#2d2d2d] bg-white px-3 py-2 shadow-[2px_2px_0px_0px_#2d2d2d]">
-                          <button type="button" onClick={() => handleRemoveDrink(type)} className="font-black text-art-text/40 hover:text-art-text cursor-pointer text-lg leading-none select-none">−</button>
-                          <span className="text-base">{emoji}</span>
-                          <span className="font-display font-black text-xl text-art-text min-w-[1.5ch] text-center">{myDrinks[type as keyof typeof myDrinks] as number}</span>
-                          <span className="text-[10px] uppercase font-black text-art-text/40">{label}</span>
-                          <button type="button" onClick={() => handleAddDrink(type)} className="font-black text-art-orange hover:text-art-orange/70 cursor-pointer text-lg leading-none select-none">+</button>
+
+              {/* ── MY DRINKS DASHBOARD ──────────────────────────────── */}
+              {activeMemberId ? (() => {
+                const myDrinks = drinks.find(d => d.memberId === activeMemberId) || { birres: 0, sangries: 0, cubates: 0 };
+                const DRINK_MAX = 20;
+                const drinkRows = [
+                  { type: 'birres'   as const, emoji: '🍺', label: language === 'ca' ? 'Birres'   : language === 'en' ? 'Beers'    : 'Cervezas', accentColor: '#D97706', bgColor: '#FFFBEB', barColor: '#F59E0B', borderColor: '#FCD34D' },
+                  { type: 'sangries' as const, emoji: '🍷', label: language === 'ca' ? 'Sangries' : language === 'en' ? 'Sangrias' : 'Sangrias', accentColor: '#B91C1C', bgColor: '#FFF1F2', barColor: '#E11D48', borderColor: '#FCA5A5' },
+                  { type: 'cubates'  as const, emoji: '🥃', label: language === 'ca' ? 'Cubates'  : language === 'en' ? 'Mixers'   : 'Cubatas',  accentColor: '#5B21B6', bgColor: '#F5F3FF', barColor: '#7C3AED', borderColor: '#C4B5FD' },
+                ] as const;
+                return (
+                  <div className="flex flex-col gap-3">
+                    {drinkRows.map(({ type, emoji, label, accentColor, bgColor, barColor, borderColor }) => {
+                      const count = (myDrinks[type] as number) || 0;
+                      const pct = Math.min((count / DRINK_MAX) * 100, 100);
+                      return (
+                        <div
+                          key={type}
+                          className="border-2 border-[#2d2d2d] shadow-[4px_4px_0px_0px_#2d2d2d] overflow-hidden"
+                          style={{ background: bgColor }}
+                        >
+                          <div className="flex items-center gap-3 px-4 py-4">
+                            {/* Label */}
+                            <div className="flex items-center gap-2 w-28 shrink-0">
+                              <span className="text-2xl leading-none">{emoji}</span>
+                              <span className="font-display font-black uppercase text-[11px] tracking-widest" style={{ color: accentColor }}>{label}</span>
+                            </div>
+                            {/* Progress bar */}
+                            <div className="flex-1 h-6 border-2 overflow-hidden" style={{ borderColor, background: '#ffffff90' }}>
+                              <div
+                                className="h-full transition-all duration-300 ease-out"
+                                style={{ width: `${pct}%`, background: barColor }}
+                              />
+                            </div>
+                            {/* Count */}
+                            <span className="font-display font-black text-2xl w-8 text-right shrink-0 tabular-nums" style={{ color: accentColor }}>
+                              {count}
+                            </span>
+                            {/* Buttons */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveDrink(type)}
+                                disabled={count === 0}
+                                className="w-9 h-9 border-2 border-[#2d2d2d] font-black text-xl flex items-center justify-center select-none transition-all active:scale-90 hover:brightness-90 disabled:opacity-30 disabled:cursor-not-allowed"
+                                style={{ background: '#fff', color: accentColor }}
+                              >−</button>
+                              <button
+                                type="button"
+                                onClick={() => handleAddDrink(type)}
+                                className="w-9 h-9 border-2 border-[#2d2d2d] font-black text-xl flex items-center justify-center select-none transition-all active:scale-90 hover:brightness-90"
+                                style={{ background: barColor, color: '#fff' }}
+                              >+</button>
+                            </div>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  );
-                })()}
+                      );
+                    })}
+                  </div>
+                );
+              })() : (
+                <div className="border-2 border-[#2d2d2d] bg-[#fdfaf2] p-6 shadow-[4px_4px_0px_0px_#2d2d2d] text-center">
+                  <Beer className="w-10 h-10 text-art-text/20 mx-auto mb-3" />
+                  <p className="font-display font-black text-art-text/40 uppercase text-sm">
+                    {language === 'ca' ? 'Selecciona el teu perfil a Perfils per registrar begudes' : language === 'en' ? 'Select your profile in Profiles to track drinks' : 'Selecciona tu perfil en Perfiles para registrar bebidas'}
+                  </p>
+                </div>
+              )}
+
+              {/* ── LEADERBOARD ──────────────────────────────────────────── */}
+              <div className="bg-[#fdfaf2] border-2 border-[#2d2d2d] p-5 shadow-[4px_4px_0px_0px_#2d2d2d]">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">🏆 Rànquing del grup</span>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                   {members
                     .map(m => {
