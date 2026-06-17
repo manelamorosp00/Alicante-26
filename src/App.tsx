@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Language, Member, Expense, PlanItem, VoteItem, WheelConfig, DrinkCount, PlaylistSong } from './types';
+import { Language, Member, Expense, PlanItem, VoteItem, WheelConfig, DrinkCount } from './types';
 import { t } from './translations';
 import {
   defaultMembers,
@@ -40,7 +40,6 @@ import {
   LogOut,
   UserCheck,
   Compass,
-  Music,
   Thermometer,
   Star,
   Beer,
@@ -87,10 +86,7 @@ export default function App() {
 
   // New features state
   const [drinks, setDrinks] = useState<DrinkCount[]>([]);
-  const [playlist, setPlaylist] = useState<PlaylistSong[]>([]);
   const [alacantTemp, setAlacantTemp] = useState<number | null>(null);
-  const [newSongUrl, setNewSongUrl] = useState('');
-  const [newSongTitle, setNewSongTitle] = useState('');
 
   // 4. Tab selection state
   const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'plans' | 'recomanacions' | 'sightseeing' | 'games' | 'begudes' | 'profiles'>('dashboard');
@@ -343,11 +339,6 @@ export default function App() {
       setDrinks(list);
     }, (error) => console.warn('[drinks] Firestore error:', error.message));
 
-    const unsubPlaylist = onSnapshot(collection(db, 'playlist'), (snapshot) => {
-      const list: PlaylistSong[] = [];
-      snapshot.forEach((d) => list.push(d.data() as PlaylistSong));
-      setPlaylist(list.sort((a, b) => a.addedAt.localeCompare(b.addedAt)));
-    }, (error) => console.warn('[playlist] Firestore error:', error.message));
 
     return () => {
       unsubMembers();
@@ -356,7 +347,6 @@ export default function App() {
       unsubVotes();
       unsubWheels();
       unsubDrinks();
-      unsubPlaylist();
     };
   }, [firebaseUser]);
 
@@ -434,25 +424,6 @@ export default function App() {
   };
 
   // ── Bingo handlers ──────────────────────────────────────────────────────────
-  // ── Playlist handlers ────────────────────────────────────────────────────────
-  const handleAddSong = async () => {
-    if (!newSongTitle.trim() || !activeMemberId) return;
-    const id = 'song_' + Date.now();
-    const song: PlaylistSong = {
-      id,
-      spotifyUrl: newSongUrl.trim(),
-      title: newSongTitle.trim(),
-      addedBy: activeMemberId,
-      addedAt: new Date().toISOString(),
-    };
-    await setDoc(doc(db, 'playlist', id), song);
-    setNewSongTitle('');
-    setNewSongUrl('');
-  };
-
-  const handleDeleteSong = async (id: string) => {
-    await deleteDoc(doc(db, 'playlist', id));
-  };
 
   // Handlers for Expenses (cloud-synchronized)
   const handleAddExpense = async (newExp: Omit<Expense, 'id'>) => {
@@ -1204,104 +1175,124 @@ export default function App() {
 
               </div>
 
-              {/* Group overview statistics banner */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                
-                {/* Total expenses summary */}
-                <div className="bg-white border-2 border-[#2d2d2d] p-5 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-4">
-                  <Coins className="text-white bg-art-orange p-2.5 w-11 h-11 border-2 border-[#2d2d2d] rounded-none shrink-0" />
+              {/* ── STATS 2×2 ──────────────────────────────────────────────── */}
+              <div className="grid grid-cols-2 gap-3">
+
+                {/* Temperatura */}
+                <div className="bg-art-orange border-2 border-[#2d2d2d] p-4 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-3">
+                  <Thermometer className="text-white w-7 h-7 shrink-0" />
                   <div>
-                    <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">{t('statsTotalExpenses', language)}</span>
-                    <h4 className="text-lg font-display font-black text-art-text mt-0.5">
-                      {expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-                    </h4>
-                  </div>
-                </div>
-
-                {/* Number of plans summary list */}
-                <div className="bg-white border-2 border-[#2d2d2d] p-5 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-4">
-                  <Calendar className="text-white bg-art-orange p-2.5 w-11 h-11 border-2 border-[#2d2d2d] rounded-none shrink-0" />
-                  <div>
-                    <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">{t('statsPlansCount', language)}</span>
-                    <h4 className="text-lg font-display font-black text-art-text mt-0.5">
-                      {plans.length}
-                    </h4>
-                  </div>
-                </div>
-
-                {/* Joined users count */}
-                <div className="bg-white border-2 border-[#2d2d2d] p-5 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-4">
-                  <Users className="text-white bg-art-orange p-2.5 w-11 h-11 border-2 border-[#2d2d2d] rounded-none shrink-0" />
-                  <div>
-                    <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">{t('statsMembers', language)}</span>
-                    <h4 className="text-lg font-display font-black text-art-text mt-0.5">
-                      {members.length}
-                    </h4>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* ── TEMPERATURA + PLAYLIST ─────────────────────────────────── */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Temperatura Alacant */}
-                <div className="bg-gradient-to-br from-[#FF6321] to-[#ff8c5a] border-2 border-[#2d2d2d] p-5 shadow-[4px_4px_0px_0px_#2d2d2d] rounded-none flex items-center gap-4">
-                  <Thermometer className="text-white w-10 h-10 shrink-0" />
-                  <div>
-                    <span className="text-[10px] uppercase font-black text-white/70 tracking-wider">Alacant ara mateix 🌞</span>
-                    <h4 className="text-3xl font-display font-black text-white mt-0.5">
+                    <span className="text-[9px] uppercase font-black text-white/70 tracking-wider block">Alacant ara</span>
+                    <span className="text-xl font-display font-black text-white">
                       {alacantTemp !== null ? `${alacantTemp}°C` : '—'}
-                    </h4>
-                    <span className="text-[10px] text-white/60 font-mono">via open-meteo.com</span>
+                    </span>
                   </div>
                 </div>
 
-                {/* Playlist del viatge */}
-                <div className="bg-white border-2 border-[#2d2d2d] p-5 shadow-[4px_4px_0px_0px_#2d2d2d] rounded-none flex flex-col gap-3">
-                  <div className="flex items-center gap-2">
-                    <Music className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
-                    <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">Playlist del viatge 🎵</span>
+                {/* Total despeses */}
+                <div className="bg-white border-2 border-[#2d2d2d] p-4 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-3">
+                  <Coins className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
+                  <div>
+                    <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('statsTotalExpenses', language)}</span>
+                    <span className="text-base font-display font-black text-art-text">
+                      {expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                    </span>
                   </div>
-                  <div className="flex flex-col gap-1 max-h-28 overflow-y-auto">
-                    {playlist.length === 0 && (
-                      <p className="text-[11px] text-art-text/40 font-mono italic">Ningú ha afegit cap cançó encara...</p>
-                    )}
-                    {playlist.map(song => {
-                      const songMember = members.find(m => m.id === song.addedBy);
-                      return (
-                        <div key={song.id} className="flex items-center gap-2 group">
-                          <span className="text-sm">{songMember?.avatarUrl || '🎵'}</span>
-                          {song.spotifyUrl ? (
-                            <a href={song.spotifyUrl} target="_blank" rel="noreferrer" className="text-[11px] font-bold text-art-orange hover:underline flex-1 truncate">{song.title}</a>
-                          ) : (
-                            <span className="text-[11px] font-bold text-art-text flex-1 truncate">{song.title}</span>
-                          )}
-                          {song.addedBy === activeMemberId && (
-                            <button type="button" onClick={() => handleDeleteSong(song.id)} className="opacity-0 group-hover:opacity-100 text-art-text/40 hover:text-red-500 transition-all cursor-pointer">
-                              <X className="w-3 h-3" />
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
+                </div>
+
+                {/* Plans */}
+                <div className="bg-white border-2 border-[#2d2d2d] p-4 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-3">
+                  <Calendar className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
+                  <div>
+                    <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('statsPlansCount', language)}</span>
+                    <span className="text-xl font-display font-black text-art-text">{plans.length}</span>
                   </div>
-                  {activeMemberId && (
-                    <div className="flex gap-2 pt-1 border-t border-[#2d2d2d]/10">
-                      <div className="flex flex-col gap-1 flex-1">
-                        <input type="text" placeholder="Nom de la cançó *" value={newSongTitle} onChange={e => setNewSongTitle(e.target.value)}
-                          className="text-[11px] border border-[#2d2d2d] px-2 py-1 font-mono w-full outline-none" />
-                        <input type="text" placeholder="Link Spotify (opcional)" value={newSongUrl} onChange={e => setNewSongUrl(e.target.value)}
-                          className="text-[11px] border border-[#2d2d2d] px-2 py-1 font-mono w-full outline-none" />
+                </div>
+
+                {/* Membres */}
+                <div className="bg-white border-2 border-[#2d2d2d] p-4 shadow-[3px_3px_0px_0px_#2d2d2d] rounded-none flex items-center gap-3">
+                  <Users className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
+                  <div>
+                    <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('statsMembers', language)}</span>
+                    <span className="text-xl font-display font-black text-art-text">{members.length}</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* ── QUI HA ENTRAT ────────────────────────────────────────────── */}
+              <div className="bg-[#fdfaf2] border-2 border-[#2d2d2d] p-5 shadow-[4px_4px_0px_0px_#2d2d2d] rounded-none">
+                <div className="flex items-center gap-2 mb-4">
+                  <Users className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
+                  <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">
+                    {language === 'ca' ? 'Qui ha entrat' : language === 'en' ? 'Who joined' : 'Quién ha entrado'}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {members.map(m => {
+                    const hasJoined = !!m.googleUid;
+                    return (
+                      <div
+                        key={m.id}
+                        className={`flex items-center gap-2 border-2 px-3 py-2 text-xs font-black uppercase tracking-wide ${
+                          hasJoined
+                            ? 'border-[#2d2d2d] bg-white shadow-[2px_2px_0px_0px_#2d2d2d] text-art-text'
+                            : 'border-[#2d2d2d]/30 bg-white/50 text-art-text/30'
+                        }`}
+                      >
+                        <span className={`text-base ${!hasJoined ? 'grayscale opacity-40' : ''}`}>{m.avatarUrl}</span>
+                        <span>{m.nickname || m.name}</span>
+                        {hasJoined
+                          ? <Check className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                          : <span className="text-[9px] font-mono text-art-text/30 normal-case">pendent</span>
+                        }
                       </div>
-                      <button type="button" onClick={handleAddSong}
-                        className="border-2 border-[#2d2d2d] bg-art-yellow px-3 font-black text-xs shadow-[2px_2px_0px_0px_#2d2d2d] cursor-pointer hover:bg-art-yellow/80 transition-all self-stretch flex items-center">
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
               </div>
+
+              {/* ── PROPER PLA DESTACAT ──────────────────────────────────────── */}
+              {(() => {
+                const nextPlan = plans
+                  .filter(p => p.date)
+                  .sort((a, b) => a.date!.localeCompare(b.date!))
+                  .find(p => p.date! >= new Date().toISOString().slice(0, 10));
+                if (!nextPlan) return null;
+                return (
+                  <div className="bg-white border-2 border-[#2d2d2d] p-5 shadow-[4px_4px_0px_0px_#2d2d2d] rounded-none">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Calendar className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] rounded-none shrink-0" />
+                      <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">
+                        {language === 'ca' ? 'Proper pla' : language === 'en' ? 'Next event' : 'Próximo plan'}
+                      </span>
+                    </div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className="font-display font-black text-art-text text-base uppercase tracking-tight leading-tight">{nextPlan.title}</h4>
+                        {nextPlan.description && (
+                          <p className="text-[11px] text-art-text/60 mt-1 font-mono">{nextPlan.description}</p>
+                        )}
+                      </div>
+                      {nextPlan.date && (
+                        <span className="text-[10px] font-black font-mono text-white bg-[#2d2d2d] px-2 py-1 shrink-0">
+                          {new Date(nextPlan.date + 'T00:00:00').toLocaleDateString(
+                            language === 'ca' ? 'ca-ES' : language === 'en' ? 'en-GB' : 'es-ES',
+                            { day: 'numeric', month: 'short' }
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('plans')}
+                      className="mt-3 text-[10px] uppercase font-black text-art-orange tracking-wider hover:underline cursor-pointer"
+                    >
+                      {language === 'ca' ? 'Veure tots els plans →' : language === 'en' ? 'See all plans →' : 'Ver todos los planes →'}
+                    </button>
+                  </div>
+                );
+              })()}
 
             </div>
           )}
