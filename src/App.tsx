@@ -17,7 +17,7 @@ import { ProfileManager } from './components/ProfileManager';
 import { TutorialOverlay } from './components/TutorialOverlay';
 import { Recomanacions } from './components/Recomanacions';
 import { db, auth, googleProvider } from './firebase';
-import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocs } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from './firebaseUtils';
 import {
@@ -127,10 +127,16 @@ export default function App() {
 
   // Auth state listener — detects login/logout automatically
   useEffect(() => {
-    // Handle redirect result on mobile (getRedirectResult resolves after coming back from Google)
-    getRedirectResult(auth).catch(() => {
-      // Ignore errors — user may not have done a redirect login
-    });
+    // Handle redirect result (when coming back from signInWithRedirect fallback)
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          console.log('[auth] Redirect sign-in succeeded:', result.user.email);
+        }
+      })
+      .catch((err) => {
+        console.warn('[auth] getRedirectResult:', err?.code ?? err);
+      });
 
     const unsub = onAuthStateChanged(auth, (user) => {
       setFirebaseUser(user);
@@ -155,22 +161,29 @@ export default function App() {
     }
   }, [firebaseUser, members]);
 
-  // Login amb Google — popup en desktop, redirect en mòbil (evita l'error de sessionStorage)
-  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
   const handleGoogleLogin = async () => {
     setAuthLoading(true);
     try {
-      if (isMobile) {
-        await signInWithRedirect(auth, googleProvider);
-        // La pàgina es recarregarà; getRedirectResult gestionarà el resultat
+      // Ensure auth state survives page reloads/redirects
+      await setPersistence(auth, browserLocalPersistence);
+      // signInWithPopup works on mobile when triggered by a direct user tap
+      await signInWithPopup(auth, googleProvider);
+      setAuthLoading(false);
+    } catch (err: any) {
+      // If popup was blocked by the browser, fall back to redirect
+      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          // Page will reload; getRedirectResult above will capture the result
+        } catch (redirectErr) {
+          console.error('[auth] Redirect fallback error:', redirectErr);
+          setAuthLoading(false);
+        }
       } else {
-        await signInWithPopup(auth, googleProvider);
+        console.error('[auth] Login error:', err);
         setAuthLoading(false);
       }
-    } catch (err) {
-      console.error('Login error:', err);
-      setAuthLoading(false);
     }
   };
 
