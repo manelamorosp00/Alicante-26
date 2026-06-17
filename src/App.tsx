@@ -17,7 +17,7 @@ import { ProfileManager } from './components/ProfileManager';
 import { TutorialOverlay } from './components/TutorialOverlay';
 import { Recomanacions } from './components/Recomanacions';
 import { db, auth, googleProvider } from './firebase';
-import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocs } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from './firebaseUtils';
 import {
@@ -108,6 +108,11 @@ export default function App() {
 
   // Auth state listener — detects login/logout automatically
   useEffect(() => {
+    // Handle redirect result on mobile (getRedirectResult resolves after coming back from Google)
+    getRedirectResult(auth).catch(() => {
+      // Ignore errors — user may not have done a redirect login
+    });
+
     const unsub = onAuthStateChanged(auth, (user) => {
       setFirebaseUser(user);
       if (!user) {
@@ -131,14 +136,21 @@ export default function App() {
     }
   }, [firebaseUser, members]);
 
-  // Login amb Google
+  // Login amb Google — popup en desktop, redirect en mòbil (evita l'error de sessionStorage)
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
   const handleGoogleLogin = async () => {
     setAuthLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      if (isMobile) {
+        await signInWithRedirect(auth, googleProvider);
+        // La pàgina es recarregarà; getRedirectResult gestionarà el resultat
+      } else {
+        await signInWithPopup(auth, googleProvider);
+        setAuthLoading(false);
+      }
     } catch (err) {
       console.error('Login error:', err);
-    } finally {
       setAuthLoading(false);
     }
   };
