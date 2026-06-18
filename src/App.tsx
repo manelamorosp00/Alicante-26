@@ -23,7 +23,7 @@ import { PackingList } from './components/PackingList';
 import { TutorialOverlay } from './components/TutorialOverlay';
 import { Recomanacions } from './components/Recomanacions';
 import { db, auth, googleProvider } from './firebase';
-import { signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, browserSessionPersistence, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocs } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from './firebaseUtils';
 import {
@@ -136,7 +136,10 @@ export default function App() {
   // Auth state listener — detects login/logout automatically
   useEffect(() => {
     // Set local persistence once on load (must be done before any sign-in attempt)
-    setPersistence(auth, browserLocalPersistence).catch((e) => console.warn('[auth] setPersistence:', e));
+    // Try localStorage (normal), fall back to sessionStorage (incognito/Safari)
+    setPersistence(auth, browserLocalPersistence).catch(() => {
+      setPersistence(auth, browserSessionPersistence).catch((e) => console.warn('[auth] setPersistence:', e));
+    });
 
     // Handle redirect result (when coming back from signInWithRedirect fallback)
     getRedirectResult(auth)
