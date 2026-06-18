@@ -1016,151 +1016,239 @@ export default function App() {
           
           {/* 1. DASHBOARD VIEW */}
           {activeTab === 'dashboard' && (
-            <div className="flex flex-col gap-6 animate-fadeIn" id="dashboard-view-panel">
-              
-              {/* iOS Mobile App/PWA Install Guide (Brutalist Style) */}
-              {!dismissedPwaGuide && (
-                <div className="bg-white border border-[#FFD9B8] p-5 shadow-[0_4px_16px_rgba(42,26,18,0.08)] flex flex-col sm:flex-row items-start gap-4 relative rounded-2xl animate-fadeIn">
-                  <div className="bg-art-yellow p-3 border border-[#FFD9B8] text-art-text shrink-0 text-xl font-bold rounded-2xl select-none">
-                    📲
-                  </div>
-                  <div className="flex-1 pr-6">
-                    <h4 className="font-display font-black text-xs uppercase text-art-text tracking-wide">
-                      {language === 'ca' ? '💡 Porta Alacant 2026 al teu iPhone!' : language === 'en' ? '💡 Add Alacant 2026 to your iPhone!' : '💡 ¡Mete Alacant 2026 en tu móvil!'}
-                    </h4>
-                    <p className="text-[11px] font-semibold text-art-text/80 leading-relaxed mt-1">
-                      {language === 'ca' ? (
-                        <>Toca el botó de <strong>Compartir 📤</strong> a la barra inferior de Safari, i selecciona <strong>'Afegir a la pantalla d'inici' 📲</strong> per tenir-ho com una aplicació nativa de veritat!</>
-                      ) : language === 'en' ? (
-                        <>Tap the <strong>Share button 📤</strong> in iPhone's Safari browser, then click <strong>'Add to Home Screen' 📲</strong> to install this web console like a real native app!</>
-                      ) : (
-                        <>¡Ponlo flamenquito en tu pantalla d'inicio canija! Dale a <strong>Compartir 📤</strong> en er Safari, y búscate <strong>'Añadir a pantalla de inicio' 📲</strong> pa' vacilar de App nativeca!</>
-                      )}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setDismissedPwaGuide(true)}
-                    className="absolute top-3 right-3 text-art-text/60 hover:text-art-text font-black text-sm p-1 cursor-pointer select-none border border-transparent hover:border-art-orange hover:bg-white transition-all rounded-2xl"
-                    title="Dismiss"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-              
-              {/* ── KPIs ── */}
-              <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-4 animate-fadeIn" id="dashboard-view-panel">
 
-                {/* Temperatura + temps */}
-                <div className="bg-gradient-to-br from-[#FF5A1F] to-[#E0290B] border-0 p-4 shadow-[0_6px_20px_rgba(224,41,11,0.30)] rounded-2xl flex items-center gap-3 relative overflow-hidden">
-                  <Thermometer className="text-white w-7 h-7 shrink-0" />
-                  <div className="min-w-0">
-                    <span className="text-[9px] uppercase font-black text-white/70 tracking-wider block">Alacant ara</span>
-                    <span className="text-xl font-display font-black text-white leading-none">
-                      {alacantTemp !== null ? `${alacantTemp}°C` : '—'}
-                    </span>
-                    {weatherCode !== null && (
-                      <span className="text-[10px] text-white/80 block mt-0.5">
-                        {t(weatherCode === 0 ? 'weatherClear' : weatherCode <= 3 ? 'weatherCloudy' : weatherCode <= 48 ? 'weatherFoggy' : weatherCode <= 67 ? 'weatherRainy' : weatherCode <= 82 ? 'weatherShowers' : 'weatherStorm', language)}
+              {/* ── WEATHER HERO ──────────────────────────────────────────────── */}
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FF5A1F] via-[#E0290B] to-[#2A1A12] p-5 shadow-[0_8px_32px_rgba(224,41,11,0.35)]">
+                {/* Decorative glow circles */}
+                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-[#FFD23F]/15 blur-2xl pointer-events-none" />
+                <div className="absolute top-3 right-5 w-20 h-20 rounded-full bg-[#FFD23F]/25 pointer-events-none" />
+
+                {/* Top label */}
+                <p className="font-mono text-[9px] uppercase tracking-[3px] text-white/55 mb-3">
+                  19–24 JUNY · FOGUERES
+                </p>
+
+                {/* City + weather row */}
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h1 className="font-display text-5xl text-white uppercase leading-none tracking-tight drop-shadow-sm">
+                      ALACANT
+                    </h1>
+                    <div className="flex items-baseline gap-2 mt-2">
+                      <span className="font-display text-3xl text-[#FFD23F] leading-none">
+                        {alacantTemp !== null ? `${alacantTemp}°C` : '—°C'}
                       </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Despeses */}
-                <div className="bg-white border border-[#FFD9B8] p-4 shadow-[0_4px_12px_rgba(42,26,18,0.10)] rounded-2xl flex items-center gap-3">
-                  <Coins className="text-white bg-art-orange p-2 w-9 h-9 border border-[#FFD9B8] rounded-xl shrink-0" />
-                  <div className="min-w-0">
-                    <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('statsTotalExpenses', language)}</span>
-                    <span className="text-base font-display font-black text-art-text leading-none">
-                      {expenses.reduce((sum, e) => sum + e.amount, 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-                    </span>
-                  </div>
-                </div>
-
-                {/* Plans programats */}
-                <div className="bg-white border border-[#FFD9B8] p-4 shadow-[0_4px_12px_rgba(42,26,18,0.10)] rounded-2xl flex items-center gap-3">
-                  <Calendar className="text-white bg-art-orange p-2 w-9 h-9 border border-[#FFD9B8] rounded-xl shrink-0" />
-                  <div className="min-w-0">
-                    <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('statsPlansCount', language)}</span>
-                    <span className="text-xl font-display font-black text-art-text leading-none">{plans.length}</span>
-                  </div>
-                </div>
-
-                {/* Countdown (fins el 22/06) → Amics units (durant el viatge) */}
-                {new Date() < new Date('2026-06-22T00:00:00') ? (
-                  <div className="bg-white border border-[#FFD9B8] p-4 shadow-[0_4px_12px_rgba(42,26,18,0.10)] rounded-2xl flex flex-col justify-center gap-1">
-                    <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('daysRemaining', language)}</span>
-                    <div className="flex items-baseline gap-1 font-display font-black text-art-text">
-                      <span className="text-2xl">{timeLeft.days}</span>
-                      <span className="text-[10px] font-mono">d</span>
-                      <span className="text-lg mx-0.5">:</span>
-                      <span className="text-2xl">{String(timeLeft.hours).padStart(2,'0')}</span>
-                      <span className="text-[10px] font-mono">h</span>
-                      <span className="text-lg mx-0.5">:</span>
-                      <span className="text-2xl">{String(timeLeft.minutes).padStart(2,'0')}</span>
-                      <span className="text-[10px] font-mono">m</span>
+                      {weatherCode !== null && (
+                        <span className="text-sm text-white/65">
+                          {t(weatherCode === 0 ? 'weatherClear' : weatherCode <= 3 ? 'weatherCloudy' : weatherCode <= 48 ? 'weatherFoggy' : weatherCode <= 67 ? 'weatherRainy' : weatherCode <= 82 ? 'weatherShowers' : 'weatherStorm', language)}
+                        </span>
+                      )}
                     </div>
                   </div>
-                ) : (
-                  <div className="bg-white border border-[#FFD9B8] p-4 shadow-[0_4px_12px_rgba(42,26,18,0.10)] rounded-2xl flex items-center gap-3">
-                    <Users className="text-white bg-art-orange p-2 w-9 h-9 border border-[#FFD9B8] rounded-xl shrink-0" />
-                    <div className="min-w-0">
-                      <span className="text-[9px] uppercase font-black text-art-text/40 tracking-wider block">{t('statsMembers', language)}</span>
-                      <span className="text-xl font-display font-black text-art-text leading-none">{members.filter(m => !!m.googleUid).length}/{members.length}</span>
-                    </div>
-                  </div>
-                )}
+                  {/* Weather emoji */}
+                  <span className="text-5xl leading-none select-none" style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.25))' }}>
+                    {weatherCode === null ? '🌤️' : weatherCode === 0 ? '☀️' : weatherCode <= 3 ? '⛅' : weatherCode <= 48 ? '🌫️' : weatherCode <= 67 ? '🌧️' : weatherCode <= 82 ? '🌦️' : '⛈️'}
+                  </span>
+                </div>
 
+                {/* Divider */}
+                <div className="mt-4 pt-4 border-t border-white/15">
+                  {new Date() < new Date('2026-06-22T00:00:00') ? (
+                    <div className="flex items-end gap-4">
+                      {[
+                        { value: timeLeft.days, label: language === 'ca' ? 'dies' : language === 'en' ? 'days' : 'días' },
+                        { value: String(timeLeft.hours).padStart(2,'0'), label: language === 'ca' ? 'hores' : language === 'en' ? 'hours' : 'horas' },
+                        { value: String(timeLeft.minutes).padStart(2,'0'), label: language === 'ca' ? 'min' : 'min' },
+                      ].map(({ value, label }) => (
+                        <div key={label} className="flex flex-col items-center">
+                          <span className="font-display text-2xl text-white leading-none">{value}</span>
+                          <span className="font-mono text-[8px] text-white/45 uppercase tracking-widest mt-0.5">{label}</span>
+                        </div>
+                      ))}
+                      <div className="ml-auto flex flex-col items-center">
+                        <span className="font-display text-2xl text-white leading-none">{members.filter(m => !!m.googleUid).length}</span>
+                        <span className="font-mono text-[8px] text-white/45 uppercase tracking-widest mt-0.5">
+                          {language === 'ca' ? 'colla' : language === 'en' ? 'crew' : 'pandilla'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="font-display text-xl text-[#FFD23F] uppercase">🎉 {language === 'ca' ? 'ESTEM AQUÍ!' : language === 'en' ? 'WE\'RE HERE!' : '¡AQUÍ ESTAMO\'!'}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* ── PROPER PLA DESTACAT ──────────────────────────────────────── */}
-              {(() => {
-                const nextPlan = plans
-                  .filter(p => p.date)
-                  .sort((a, b) => a.date!.localeCompare(b.date!))
-                  .find(p => p.date! >= new Date().toISOString().slice(0, 10));
-                if (!nextPlan) return null;
-                return (
-                  <div className="bg-white border border-[#FFD9B8] p-5 shadow-[0_4px_16px_rgba(42,26,18,0.12)] rounded-2xl">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Calendar className="text-white bg-art-orange p-2 w-9 h-9 border border-[#FFD9B8] rounded-xl shrink-0" />
-                      <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider font-mono">
-                        {language === 'ca' ? 'Proper pla' : language === 'en' ? 'Next event' : 'Próximo plan'}
+              {/* ── MEMBER AVATARS ────────────────────────────────────────────── */}
+              {members.length > 0 && (
+                <div className="flex gap-3 overflow-x-auto hide-scrollbar py-1 px-0.5">
+                  {members.map(m => (
+                    <div key={m.id} className="flex flex-col items-center gap-1 shrink-0">
+                      <div className={`w-12 h-12 rounded-full bg-[#FFF4E6] border-2 flex items-center justify-center text-2xl select-none ${m.id === activeMemberId ? 'border-art-orange shadow-[0_0_0_2px_rgba(255,90,31,0.30)]' : 'border-[#FFD9B8]'}`}>
+                        {m.avatarUrl}
+                      </div>
+                      <span className="text-[8px] font-mono uppercase text-art-text/50 tracking-wide max-w-[48px] truncate text-center leading-none">
+                        {(m.nickname || m.name).split(' ')[0]}
                       </span>
                     </div>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="font-display font-black text-art-text text-base uppercase tracking-tight leading-tight">{nextPlan.title}</h4>
-                        {nextPlan.description && (
-                          <p className="text-[11px] text-art-text/60 mt-1 font-mono line-clamp-2">{nextPlan.description}</p>
-                        )}
-                      </div>
-                      {nextPlan.date && (() => {
-                        const d = new Date(nextPlan.date + 'T00:00:00');
-                        const day = d.getDate();
-                        const mon = d.toLocaleDateString(language === 'ca' ? 'ca-ES' : language === 'en' ? 'en-GB' : 'es-ES', { month: 'short' }).toUpperCase();
-                        return (
-                          <div className="flex flex-col items-center bg-white border border-[#FFD9B8] rounded-xl px-3 py-1.5 shrink-0 shadow-[0_2px_8px_rgba(42,26,18,0.10)]">
-                            <span className="font-display text-2xl text-art-orange leading-none">{day}</span>
-                            <span className="font-mono text-[8px] uppercase text-art-text/50 tracking-widest leading-tight">{mon}</span>
-                          </div>
-                        );
-                      })()}
-                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ── BALANÇ + PROPER PLA ───────────────────────────────────────── */}
+              <div className="grid grid-cols-2 gap-3">
+
+                {/* Balance card (dark) */}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('expenses')}
+                  className="bg-[#2A1A12] rounded-2xl p-4 shadow-[0_4px_16px_rgba(42,26,18,0.35)] flex flex-col gap-2 text-left cursor-pointer hover:brightness-110 transition-all"
+                >
+                  <span className="font-mono text-[8px] uppercase tracking-widest text-white/35">
+                    {language === 'ca' ? 'El teu balanç' : language === 'en' ? 'Your balance' : 'Tu saldo'}
+                  </span>
+                  <span className="font-display text-2xl text-[#FFD23F] leading-none">
+                    {(() => {
+                      const me = members.find(m => m.id === activeMemberId);
+                      if (!me) return expenses.reduce((s, e) => s + e.amount, 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+                      const paid = expenses.filter(e => e.paidBy === activeMemberId).reduce((s, e) => s + e.amount, 0);
+                      const share = expenses.reduce((s, e) => {
+                        const split = e.splitAmong?.length ? e.splitAmong : members.map(m => m.id);
+                        return split.includes(activeMemberId) ? s + e.amount / split.length : s;
+                      }, 0);
+                      const balance = paid - share;
+                      return (balance >= 0 ? '+' : '') + balance.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+                    })()}
+                  </span>
+                  <span className="text-[10px] text-white/35 font-mono leading-snug">
+                    {language === 'ca' ? 'La colla et deu diners' : language === 'en' ? 'Group owes you' : 'La gente te debe pasta'}
+                  </span>
+                </button>
+
+                {/* Next plan card */}
+                {(() => {
+                  const nextPlan = plans
+                    .filter(p => p.date)
+                    .sort((a, b) => a.date!.localeCompare(b.date!))
+                    .find(p => p.date! >= new Date().toISOString().slice(0, 10));
+
+                  if (!nextPlan) return (
                     <button
                       type="button"
                       onClick={() => setActiveTab('plans')}
-                      className="mt-3 text-[10px] uppercase font-bold text-art-garnet tracking-wider hover:underline cursor-pointer"
+                      className="bg-white border border-[#FFD9B8] rounded-2xl p-4 shadow-[0_4px_12px_rgba(42,26,18,0.10)] flex flex-col justify-center items-center gap-2 cursor-pointer hover:bg-[#FFF4E6] hover:border-art-orange transition-all"
                     >
-                      {language === 'ca' ? 'Veure tots els plans →' : language === 'en' ? 'See all plans →' : 'Ver todos los planes →'}
+                      <span className="text-3xl">📅</span>
+                      <span className="font-mono text-[9px] uppercase text-art-text/40 tracking-wider text-center">
+                        {language === 'ca' ? 'Afegir pla' : language === 'en' ? 'Add plan' : 'Añadir plan'}
+                      </span>
                     </button>
+                  );
+
+                  const d = new Date(nextPlan.date + 'T00:00:00');
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('plans')}
+                      className="bg-white border border-[#FFD9B8] rounded-2xl p-4 shadow-[0_4px_12px_rgba(42,26,18,0.10)] flex flex-col gap-2.5 cursor-pointer hover:bg-[#FFF4E6] hover:border-art-orange transition-all text-left"
+                    >
+                      <span className="font-mono text-[8px] uppercase tracking-widest text-art-text/35">
+                        {language === 'ca' ? 'Proper pla' : language === 'en' ? 'Next plan' : 'Próximo plan'}
+                      </span>
+                      <div className="flex items-start gap-2">
+                        <div className="flex flex-col items-center bg-[#FFF4E6] border border-[#FFD9B8] rounded-xl px-2 py-1 shrink-0">
+                          <span className="font-display text-xl text-art-orange leading-none">{d.getDate()}</span>
+                          <span className="font-mono text-[7px] uppercase text-art-text/40 tracking-widest leading-tight">
+                            {d.toLocaleDateString(language === 'ca' ? 'ca-ES' : language === 'en' ? 'en-GB' : 'es-ES', { month: 'short' }).toUpperCase()}
+                          </span>
+                        </div>
+                        <p className="font-display text-sm text-art-text uppercase leading-tight line-clamp-2">{nextPlan.title}</p>
+                      </div>
+                      {nextPlan.emoji && <span className="text-lg leading-none">{nextPlan.emoji}</span>}
+                    </button>
+                  );
+                })()}
+              </div>
+
+              {/* ── ACCESSOS RÀPIDS ───────────────────────────────────────────── */}
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-[3px] text-art-text/35 mb-3">
+                  {language === 'ca' ? 'Accessos ràpids' : language === 'en' ? 'Quick access' : 'Accesos rápidos'}
+                </p>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {([
+                    { tab: 'plans'        as const, icon: '📅', labelCa: 'Plans',      labelEn: 'Plans',     labelAn: 'Planes',   badge: plans.length || null },
+                    { tab: 'expenses'     as const, icon: '💰', labelCa: 'Despeses',   labelEn: 'Expenses',  labelAn: 'Gastos',   badge: null },
+                    { tab: 'games'        as const, icon: '🎡', labelCa: 'Jocs',       labelEn: 'Games',     labelAn: 'Juegos',   badge: null },
+                    { tab: 'recomanacions' as const, icon: '🍴', labelCa: 'Recoman.',  labelEn: 'Places',    labelAn: 'Lugares',  badge: null },
+                    { tab: 'sightseeing'  as const, icon: '🏛️', labelCa: 'Monuments', labelEn: 'Sights',    labelAn: 'Turismo',  badge: null },
+                    { tab: 'begudes'      as const, icon: '🍺', labelCa: 'Begudes',    labelEn: 'Drinks',    labelAn: 'Bebías',   badge: null },
+                  ] as { tab: 'plans'|'expenses'|'games'|'recomanacions'|'sightseeing'|'begudes', icon: string, labelCa: string, labelEn: string, labelAn: string, badge: number|null }[]).map(({ tab, icon, labelCa, labelEn, labelAn, badge }) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setActiveTab(tab)}
+                      className="bg-white border border-[#FFD9B8] rounded-2xl p-3.5 shadow-[0_2px_8px_rgba(42,26,18,0.08)] flex flex-col items-center gap-1.5 hover:bg-[#FFF4E6] hover:border-art-orange hover:shadow-[0_4px_14px_rgba(255,90,31,0.15)] hover:translate-y-[-2px] transition-all cursor-pointer group relative"
+                    >
+                      {badge !== null && badge > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-art-orange text-white font-black text-[8px] rounded-full w-4 h-4 flex items-center justify-center leading-none shadow-sm">
+                          {badge > 9 ? '9+' : badge}
+                        </span>
+                      )}
+                      <span className="text-2xl leading-none">{icon}</span>
+                      <span className="font-mono text-[8px] uppercase tracking-wide text-art-text/50 group-hover:text-art-text text-center leading-tight transition-colors">
+                        {language === 'ca' ? labelCa : language === 'en' ? labelEn : labelAn}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── VOTACIÓ ACTIVA ────────────────────────────────────────────── */}
+              {(() => {
+                const activeVote = votes.find(v => v.options && v.options.length > 0);
+                if (!activeVote) return null;
+                const totalVotes = activeVote.options.reduce((s, o) => s + o.votes.length, 0);
+                return (
+                  <div className="bg-white border border-[#FFD9B8] rounded-2xl p-4 shadow-[0_4px_16px_rgba(42,26,18,0.10)]">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <span className="bg-art-garnet text-white font-mono text-[8px] uppercase tracking-widest px-2 py-0.5 rounded-full">
+                        🗳️ {language === 'ca' ? 'Votació' : language === 'en' ? 'Vote' : 'Votasión'}
+                      </span>
+                    </div>
+                    <p className="font-display text-sm text-art-text uppercase tracking-tight mb-3 leading-tight">
+                      {activeVote.question[language]}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {activeVote.options.map(opt => {
+                        const pct = totalVotes > 0 ? Math.round((opt.votes.length / totalVotes) * 100) : 0;
+                        const hasVoted = opt.votes.includes(activeMemberId);
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => setActiveTab('games')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border font-black text-xs transition-all cursor-pointer ${
+                              hasVoted
+                                ? 'bg-art-orange text-white border-art-orange shadow-[0_2px_8px_rgba(255,90,31,0.30)]'
+                                : 'bg-[#FFF4E6] text-art-text border-[#FFD9B8] hover:border-art-orange'
+                            }`}
+                          >
+                            {opt.text[language]}
+                            {totalVotes > 0 && (
+                              <span className="font-mono text-[9px] opacity-60">{pct}%</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })()}
 
-              {/* ── ALLOTJAMENT (compacte, al final) ─────────────────────────── */}
+              {/* ── ALLOTJAMENT ───────────────────────────────────────────────── */}
               <div className="bg-white border border-[#FFD9B8] px-4 py-3 shadow-[0_2px_8px_rgba(42,26,18,0.10)] rounded-2xl flex items-center gap-3 justify-between">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-white bg-art-garnet font-black rounded-lg px-2 py-0.5 text-[8px] uppercase tracking-wider shrink-0">
@@ -1181,6 +1269,33 @@ export default function App() {
                   <ExternalLink className="w-3 h-3 text-art-orange" />
                 </a>
               </div>
+
+              {/* iOS PWA Install Guide (bottom, dismissable) */}
+              {!dismissedPwaGuide && (
+                <div className="bg-white border border-[#FFD9B8] p-4 shadow-[0_4px_16px_rgba(42,26,18,0.08)] flex items-start gap-3 relative rounded-2xl animate-fadeIn">
+                  <span className="text-xl shrink-0 mt-0.5">📲</span>
+                  <div className="flex-1 pr-6 min-w-0">
+                    <p className="font-mono text-[9px] uppercase tracking-widest text-art-text/40 mb-1">
+                      {language === 'ca' ? 'Instal·la l\'App' : language === 'en' ? 'Install App' : 'Instala la App'}
+                    </p>
+                    <p className="text-[11px] font-semibold text-art-text/70 leading-relaxed">
+                      {language === 'ca'
+                        ? <>Compartir <strong>📤</strong> → <strong>'Afegir a la pantalla d'inici'</strong></>
+                        : language === 'en'
+                        ? <>Share <strong>📤</strong> → <strong>'Add to Home Screen'</strong></>
+                        : <>Compartir <strong>📤</strong> → <strong>'Añadir a pantalla de inicio'</strong></>
+                      }
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDismissedPwaGuide(true)}
+                    className="absolute top-3 right-3 text-art-text/40 hover:text-art-text p-1 cursor-pointer border border-transparent hover:border-[#FFD9B8] rounded-xl transition-all"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
 
             </div>
           )}
