@@ -62,5 +62,29 @@ service cloud.firestore {
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
+
+    // Receptes personalitzades — qualsevol usuari pot afegir/esborrar
+    match /recipes/{recipeId} {
+      allow read:   if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    // Llista de la compra — compartida, qualsevol pot afegir/marcar/esborrar
+    match /shopping/{itemId} {
+      allow read:   if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    // Llista de què cal portar — compartida
+    match /packing/{itemId} {
+      allow read:   if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
   }
 }

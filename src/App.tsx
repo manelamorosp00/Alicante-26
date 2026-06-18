@@ -95,7 +95,8 @@ export default function App() {
   // New features state
   const [drinks, setDrinks] = useState<DrinkCount[]>([]);
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
-  const [packingItems, setPackingItems]   = useState<PackingItem[]>([]);
+  const [packingItems, setPackingItems]     = useState<PackingItem[]>([]);
+  const [customRecipes, setCustomRecipes]  = useState<Recipe[]>([]);
   const [alacantTemp, setAlacantTemp] = useState<number | null>(null);
   const [weatherCode, setWeatherCode] = useState<number | null>(null);
 
@@ -351,31 +352,26 @@ export default function App() {
     }, (error) => console.warn('[drinks] Firestore error:', error.message));
 
 
-    // 7. Sync Shopping list
+    // 7. Sync Shopping list (no seeding — starts empty, users add their own items)
     const unsubShopping = onSnapshot(collection(db, 'shopping'), (snapshot) => {
-      if (snapshot.empty) {
-        defaultShoppingItems.forEach((item) => {
-          setDoc(doc(db, 'shopping', item.id), item).catch(() => {});
-        });
-      } else {
-        const list: ShoppingItem[] = [];
-        snapshot.forEach((d) => list.push(d.data() as ShoppingItem));
-        setShoppingItems(list);
-      }
+      const list: ShoppingItem[] = [];
+      snapshot.forEach((d) => list.push(d.data() as ShoppingItem));
+      setShoppingItems(list);
     }, (error) => console.warn('[shopping] Firestore error:', error.message));
 
-    // 8. Sync Packing list
+    // 8. Sync Packing list (no seeding — starts empty)
     const unsubPacking = onSnapshot(collection(db, 'packing'), (snapshot) => {
-      if (snapshot.empty) {
-        defaultPackingItems.forEach((item) => {
-          setDoc(doc(db, 'packing', item.id), item).catch(() => {});
-        });
-      } else {
-        const list: PackingItem[] = [];
-        snapshot.forEach((d) => list.push(d.data() as PackingItem));
-        setPackingItems(list);
-      }
+      const list: PackingItem[] = [];
+      snapshot.forEach((d) => list.push(d.data() as PackingItem));
+      setPackingItems(list);
     }, (error) => console.warn('[packing] Firestore error:', error.message));
+
+    // 9. Sync custom Recipes (user-added recipes, stored in Firestore)
+    const unsubRecipes = onSnapshot(collection(db, 'recipes'), (snapshot) => {
+      const list: Recipe[] = [];
+      snapshot.forEach((d) => list.push(d.data() as Recipe));
+      setCustomRecipes(list);
+    }, (error) => console.warn('[recipes] Firestore error:', error.message));
 
     return () => {
       unsubMembers();
@@ -386,6 +382,7 @@ export default function App() {
       unsubDrinks();
       unsubShopping();
       unsubPacking();
+      unsubRecipes();
     };
   }, [firebaseUser]);
 
@@ -493,6 +490,23 @@ export default function App() {
   };
 
   // ── Packing handlers ────────────────────────────────────────────────────────
+  const handleAddPackingItem = async (item: Omit<PackingItem, 'id'>) => {
+    const id = 'pack_' + Date.now();
+    const full: PackingItem = { ...item, id };
+    setPackingItems(prev => [...prev, full]);
+    try {
+      await setDoc(doc(db, 'packing', id), full);
+    } catch (err) { console.error('[packing] add error:', err); }
+  };
+
+  const handleDeletePackingItem = async (id: string) => {
+    setPackingItems(prev => prev.filter(i => i.id !== id));
+    try {
+      const { deleteDoc } = await import('firebase/firestore');
+      await deleteDoc(doc(db, 'packing', id));
+    } catch (err) { console.error('[packing] delete error:', err); }
+  };
+
   const handleTogglePackingItem = async (id: string) => {
     const item = packingItems.find(i => i.id === id);
     if (!item) return;
@@ -501,6 +515,24 @@ export default function App() {
     try {
       await setDoc(doc(db, 'packing', id), updated);
     } catch (err) { console.error('[packing] toggle error:', err); }
+  };
+
+  // ── Recipes: add/delete custom recipes ────────────────────────────────────────
+  const handleAddRecipe = async (recipe: Omit<Recipe, 'id'>) => {
+    const id = 'recipe_' + Date.now();
+    const full: Recipe = { ...recipe, id };
+    setCustomRecipes(prev => [full, ...prev]);
+    try {
+      await setDoc(doc(db, 'recipes', id), full);
+    } catch (err) { console.error('[recipes] add error:', err); }
+  };
+
+  const handleDeleteRecipe = async (id: string) => {
+    setCustomRecipes(prev => prev.filter(r => r.id !== id));
+    try {
+      const { deleteDoc } = await import('firebase/firestore');
+      await deleteDoc(doc(db, 'recipes', id));
+    } catch (err) { console.error('[recipes] delete error:', err); }
   };
 
   // ── Recipes: add ingredients to shopping ────────────────────────────────────
@@ -1024,34 +1056,30 @@ export default function App() {
       
       {/* Top Banner Header */}
       <header className="bg-white text-art-text border-b border-[#FFD9B8] shadow-[0_2px_12px_rgba(42,26,18,0.07)] sticky top-0 z-50">
-        <div className="w-full max-w-7xl mx-auto px-4 py-3 sm:py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
-          
-          {/* Logo & Subtitle */}
-          <div className="flex items-center gap-3 text-center sm:text-left">
-            <Sunset className="w-8 h-8 text-art-orange animate-pulse shrink-0" />
-            <div>
-              <h1 className="font-display text-base sm:text-lg tracking-tight uppercase flex items-center gap-1.5 justify-center sm:justify-start text-art-text">
-                {t('appTitle', language)}
-              </h1>
-              <p className="text-[10px] text-art-text/60 font-mono font-black mt-0.5 leading-none">{t('appSubtitle', language)}</p>
-            </div>
+        <div className="w-full max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+
+          {/* Flame logo */}
+          <div className="flex items-center gap-2">
+            <span className="text-2xl leading-none select-none">🔥</span>
+            <span className="font-mono text-[9px] uppercase tracking-[3px] text-art-text/40 hidden sm:block">Fogueres · Alacant 2026</span>
           </div>
 
-          {/* Right side: avatar chip → goes to profile */}
-          {activeMember && (
+          {/* Avatar chip (center on mobile, right on desktop) */}
+          {activeMember ? (
             <button
               type="button"
               onClick={() => setActiveTab('profiles')}
-              className="flex items-center gap-2 bg-white border border-[#FFD9B8] pl-2 pr-3 py-1 rounded-2xl text-xs font-black uppercase text-art-text shadow-[0_2px_8px_rgba(42,26,18,0.10)] hover:shadow-[0_4px_12px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] transition-all cursor-pointer"
-              title={language === 'ca' ? 'El meu perfil' : language === 'en' ? 'My profile' : 'Mi perfil'}
+              className="flex items-center gap-2 bg-[#FFF4E6] border border-[#FFD9B8] pl-2 pr-3 py-1.5 rounded-2xl font-black uppercase text-art-text shadow-[0_2px_8px_rgba(42,26,18,0.08)] hover:border-art-orange transition-all cursor-pointer"
             >
-              <div className="w-5 h-5 rounded-full border border-[#FFD9B8] bg-white flex items-center justify-center text-xs shrink-0 select-none">
-                {activeMember.avatarUrl}
-              </div>
-              <span className="font-black text-art-text truncate max-w-[90px]">
+              <span className="text-xl leading-none select-none">{activeMember.avatarUrl}</span>
+              <span className="font-display text-sm text-art-text leading-none uppercase">
                 {activeMember.nickname || activeMember.name}
               </span>
             </button>
+          ) : (
+            <span className="font-mono text-[9px] uppercase tracking-widest text-art-text/30">
+              🔥 Fogueres 2026
+            </span>
           )}
 
         </div>
@@ -1118,7 +1146,7 @@ export default function App() {
 
                 {/* Top label */}
                 <p className="font-mono text-[9px] uppercase tracking-[3px] text-white/55 mb-3">
-                  19–24 JUNY · FOGUERES
+                  22–26 JUNY · FOGUERES
                 </p>
 
                 {/* City + weather row */}
@@ -1264,39 +1292,7 @@ export default function App() {
                 })()}
               </div>
 
-              {/* ── ACCESSOS RÀPIDS ───────────────────────────────────────────── */}
-              <div>
-                <p className="font-mono text-[9px] uppercase tracking-[3px] text-art-text/35 mb-3">
-                  {language === 'ca' ? 'Accessos ràpids' : language === 'en' ? 'Quick access' : 'Accesos rápidos'}
-                </p>
-                <div className="grid grid-cols-3 gap-2.5">
-                  {([
-                    { tab: 'plans'        as const, icon: '📅', labelCa: 'Plans',      labelEn: 'Plans',     labelAn: 'Planes',   badge: plans.length || null },
-                    { tab: 'expenses'     as const, icon: '💰', labelCa: 'Despeses',   labelEn: 'Expenses',  labelAn: 'Gastos',   badge: null },
-                    { tab: 'games'        as const, icon: '🎡', labelCa: 'Jocs',       labelEn: 'Games',     labelAn: 'Juegos',   badge: null },
-                    { tab: 'recomanacions' as const, icon: '🍴', labelCa: 'Recoman.',  labelEn: 'Places',    labelAn: 'Lugares',  badge: null },
-                    { tab: 'sightseeing'  as const, icon: '🏛️', labelCa: 'Monuments', labelEn: 'Sights',    labelAn: 'Turismo',  badge: null },
-                    { tab: 'begudes'      as const, icon: '🍺', labelCa: 'Begudes',    labelEn: 'Drinks',    labelAn: 'Bebías',   badge: null },
-                  ] as { tab: 'plans'|'expenses'|'games'|'recomanacions'|'sightseeing'|'begudes', icon: string, labelCa: string, labelEn: string, labelAn: string, badge: number|null }[]).map(({ tab, icon, labelCa, labelEn, labelAn, badge }) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setActiveTab(tab)}
-                      className="bg-white border border-[#FFD9B8] rounded-2xl p-3.5 shadow-[0_2px_8px_rgba(42,26,18,0.08)] flex flex-col items-center gap-1.5 hover:bg-[#FFF4E6] hover:border-art-orange hover:shadow-[0_4px_14px_rgba(255,90,31,0.15)] hover:translate-y-[-2px] transition-all cursor-pointer group relative"
-                    >
-                      {badge !== null && badge > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-art-orange text-white font-black text-[8px] rounded-full w-4 h-4 flex items-center justify-center leading-none shadow-sm">
-                          {badge > 9 ? '9+' : badge}
-                        </span>
-                      )}
-                      <span className="text-2xl leading-none">{icon}</span>
-                      <span className="font-mono text-[8px] uppercase tracking-wide text-art-text/50 group-hover:text-art-text text-center leading-tight transition-colors">
-                        {language === 'ca' ? labelCa : language === 'en' ? labelEn : labelAn}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+
 
               {/* ── VOTACIÓ ACTIVA ────────────────────────────────────────────── */}
               {(() => {
@@ -1863,8 +1859,10 @@ export default function App() {
           {activeTab === 'receptes' && (
             <Receptes
               language={language}
-              recipes={defaultRecipes}
+              customRecipes={customRecipes}
               onAddToShopping={handleAddIngredientsToShopping}
+              onAddRecipe={handleAddRecipe}
+              onDeleteRecipe={handleDeleteRecipe}
             />
           )}
 
@@ -1876,6 +1874,8 @@ export default function App() {
               members={members}
               activeMemberId={activeMemberId}
               onToggle={handleTogglePackingItem}
+              onAdd={handleAddPackingItem}
+              onDelete={handleDeletePackingItem}
             />
           )}
 

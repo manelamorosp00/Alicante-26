@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Language, PackingItem, Member } from '../types';
-import { personalPackingTips } from '../data';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface PackingListProps {
   language: Language;
@@ -8,198 +8,249 @@ interface PackingListProps {
   members: Member[];
   activeMemberId: string;
   onToggle: (id: string) => void;
+  onAdd: (item: Omit<PackingItem, 'id'>) => void;
+  onDelete: (id: string) => void;
 }
 
 type PackingTab = 'shared' | 'personal';
 
+const PERSONAL_TIPS = [
+  '🧴 Crema solar', '🕶️ Ulleres de sol', '🔌 Carregador', '🩴 Xancletes',
+  '💊 Medicació', '🛂 DNI', '🩱 Banyador', '📱 Mòbil carregat',
+  '🎧 Auriculars', '💸 Efectiu', '🪥 Necesser', '🧢 Gorra',
+  '🌂 Paraigua plegable', '🔑 Claus de casa',
+];
+
 export const PackingList: React.FC<PackingListProps> = ({
-  language, items, members, activeMemberId, onToggle,
+  language, items, members, activeMemberId, onToggle, onAdd, onDelete,
 }) => {
   const [activeTab, setActiveTab] = useState<PackingTab>('shared');
+  const [showAdd, setShowAdd]     = useState(false);
+  const [newText, setNewText]     = useState('');
+  const [newEmoji, setNewEmoji]   = useState('📦');
+  const [newAssignee, setNewAssignee] = useState(activeMemberId);
 
   const t = (ca: string, en: string, an: string) =>
     language === 'ca' ? ca : language === 'en' ? en : an;
 
   const sharedItems   = items.filter(i => i.type === 'shared');
-  const personalItems = items.filter(i => i.type === 'personal');
+  const personalItems = items.filter(i => i.type === 'personal' && i.assignedTo === activeMemberId);
+  const sharedDone    = sharedItems.filter(i => i.isChecked).length;
+  const personalDone  = personalItems.filter(i => i.isChecked).length;
 
-  const sharedDone   = sharedItems.filter(i => i.isChecked).length;
-  const personalDone = personalItems.filter(i => i.isChecked).length;
-
-  const getMemberName = (assignedTo: string) => {
-    const m = members.find(m => m.id === assignedTo || m.nickname.toLowerCase() === assignedTo.toLowerCase());
-    return m?.nickname ?? assignedTo;
+  const handleAdd = () => {
+    if (!newText.trim()) return;
+    onAdd({
+      text: newText.trim(),
+      emoji: newEmoji,
+      type: activeTab,
+      assignedTo: activeTab === 'shared' ? newAssignee : activeMemberId,
+      isChecked: false,
+    });
+    setNewText('');
+    setNewEmoji('📦');
+    setNewAssignee(activeMemberId);
+    setShowAdd(false);
   };
 
-  const getMemberColor = (assignedTo: string) => {
-    const m = members.find(m => m.id === assignedTo || m.nickname.toLowerCase() === assignedTo.toLowerCase());
-    return m?.color ?? 'bg-art-orange';
-  };
+  const getMember = (id: string) =>
+    members.find(m => m.id === id || m.nickname?.toLowerCase() === id.toLowerCase());
+
+  const currentItems = activeTab === 'shared' ? sharedItems : personalItems;
+  const currentDone  = activeTab === 'shared' ? sharedDone  : personalDone;
 
   return (
     <div className="flex flex-col gap-4 animate-fadeIn">
 
-      {/* ── Title ── */}
       <div className="pb-1">
         <p className="font-mono text-[10px] uppercase tracking-[3px] text-art-text/35">
-          {t('Preparatius de viatge', 'Travel prep', 'Preparativos del viaje')}
+          {t('Preparatius de viatge', 'Travel prep', 'Preparativos')}
         </p>
         <h2 className="font-display text-3xl text-art-text uppercase leading-none mt-1">
-          {t('Què cal portar', 'What to bring', 'Qué llevar')}
+          {t('Que cal portar', 'What to bring', 'Que llevar')}
         </h2>
       </div>
 
-      {/* ── Tab toggle ── */}
       <div className="flex bg-[#FFEAD2] rounded-2xl p-1 gap-1">
-        <button
-          type="button"
-          onClick={() => setActiveTab('shared')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black uppercase transition-all cursor-pointer ${
-            activeTab === 'shared'
-              ? 'bg-white shadow-[0_2px_8px_rgba(42,26,18,0.10)] text-art-text'
-              : 'text-art-text/50 hover:text-art-text'
-          }`}
-        >
-          <span>🤝</span>
-          <span>{t('En comú', 'Shared', 'En común')}</span>
-          <span className="font-mono text-[10px] opacity-60">{sharedDone}/{sharedItems.length}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('personal')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black uppercase transition-all cursor-pointer ${
-            activeTab === 'personal'
-              ? 'bg-white shadow-[0_2px_8px_rgba(42,26,18,0.10)] text-art-text'
-              : 'text-art-text/50 hover:text-art-text'
-          }`}
-        >
-          <span>🎒</span>
-          <span>{t('El meu sac', 'My bag', 'Mi mochila')}</span>
-          <span className="font-mono text-[10px] opacity-60">{personalDone}/{personalItems.length}</span>
-        </button>
+        {([
+          { id: 'shared'   as const, emoji: '🤝', label: t('En comu', 'Shared', 'En comun'), count: `${sharedDone}/${sharedItems.length}` },
+          { id: 'personal' as const, emoji: '🎒', label: t('El meu sac', 'My bag', 'Mi mochila'), count: `${personalDone}/${personalItems.length}` },
+        ]).map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => { setActiveTab(tab.id); setShowAdd(false); }}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black uppercase transition-all cursor-pointer ${
+              activeTab === tab.id
+                ? 'bg-white shadow-[0_2px_8px_rgba(42,26,18,0.10)] text-art-text'
+                : 'text-art-text/50 hover:text-art-text'
+            }`}
+          >
+            <span>{tab.emoji}</span>
+            <span>{tab.label}</span>
+            <span className="font-mono text-[10px] opacity-50">{tab.count}</span>
+          </button>
+        ))}
       </div>
 
-      {/* ── Shared items ── */}
-      {activeTab === 'shared' && (
-        <div className="flex flex-col gap-2">
-          <div className="bg-gradient-to-br from-[#FF5A1F] to-[#E0290B] rounded-3xl p-4 flex items-center justify-between">
-            <div>
-              <p className="font-mono text-[9px] text-white/50 uppercase tracking-widest">{t('Articles compartits', 'Shared items', 'Artículos compartidos')}</p>
-              <p className="font-display text-3xl text-[#FFD23F] leading-none mt-1">
-                {sharedDone}<span className="text-xl text-white/40">/{sharedItems.length}</span>
-              </p>
-            </div>
-            <span className="text-5xl">🤝</span>
-          </div>
+      <div className={`rounded-3xl p-4 flex items-center justify-between ${
+        activeTab === 'shared'
+          ? 'bg-gradient-to-br from-[#FF5A1F] to-[#E0290B]'
+          : 'bg-[#2A1A12]'
+      }`}>
+        <div>
+          <p className="font-mono text-[9px] text-white/40 uppercase tracking-widest">
+            {activeTab === 'shared'
+              ? t('Articles per a tothom', 'Items for everyone', 'Para todos')
+              : t('La teva llista personal', 'Your personal list', 'Tu lista personal')}
+          </p>
+          <p className="font-display text-3xl text-[#FFD23F] leading-none mt-1">
+            {currentDone}<span className="text-xl text-white/30">/{currentItems.length}</span>
+          </p>
+          <p className="font-mono text-[8px] text-white/30 uppercase tracking-widest mt-1">
+            {t('preparats', 'ready', 'listos')}
+          </p>
+        </div>
+        <span className="text-5xl select-none">{activeTab === 'shared' ? '🤝' : '🎒'}</span>
+      </div>
 
-          {sharedItems.map(item => {
-            const memberName  = getMemberName(item.assignedTo);
-            const memberColor = getMemberColor(item.assignedTo);
-            return (
-              <div
-                key={item.id}
-                onClick={() => onToggle(item.id)}
-                className={`flex items-center gap-3 rounded-2xl border px-4 py-3 cursor-pointer transition-all ${
-                  item.isChecked
-                    ? 'bg-[#FFF8EE] border-[#FFE3C9] opacity-65'
-                    : 'bg-white border-[#FFD9B8] shadow-[0_2px_8px_rgba(42,26,18,0.06)] hover:border-art-orange'
-                }`}
-              >
-                {/* Checkbox */}
-                <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${
-                  item.isChecked
-                    ? 'bg-art-orange border-art-orange'
-                    : 'border-[#FFB57A]'
-                }`}>
-                  {item.isChecked && <span className="text-white font-black text-xs leading-none">✓</span>}
-                </div>
-
-                <span className="text-xl shrink-0">{item.emoji}</span>
-
-                <span className={`flex-1 text-sm font-semibold ${
-                  item.isChecked ? 'line-through text-art-text/40' : 'text-art-text'
-                }`}>
-                  {item.text}
-                </span>
-
-                {/* Assignee badge */}
-                {item.assignedTo && (
-                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${memberColor} bg-opacity-15 shrink-0`}>
-                    <span className="text-[10px] font-black text-art-text/70">{memberName}</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+      {currentItems.length === 0 && !showAdd && (
+        <div className="flex flex-col items-center gap-3 py-8 text-art-text/30">
+          <span className="text-4xl">{activeTab === 'shared' ? '🤝' : '🎒'}</span>
+          <p className="font-mono text-[10px] uppercase tracking-wider text-center">
+            {activeTab === 'shared'
+              ? t('Cap article en comu encara', 'No shared items yet', 'Sin articulos comunes')
+              : t('La teva llista es buida', 'Your list is empty', 'Tu lista esta vacia')}
+          </p>
         </div>
       )}
 
-      {/* ── Personal items (tips chips) ── */}
-      {activeTab === 'personal' && (
-        <div className="flex flex-col gap-4">
-          <div className="bg-[#2A1A12] rounded-3xl p-4 flex items-center justify-between">
-            <div>
-              <p className="font-mono text-[9px] text-white/30 uppercase tracking-widest">{t('La teva llista', 'Your checklist', 'Tu lista')}</p>
-              <p className="font-display text-3xl text-[#FFD23F] leading-none mt-1">🎒</p>
+      <div className="flex flex-col gap-2">
+        {currentItems.map(item => {
+          const assigneeMember = getMember(item.assignedTo);
+          return (
+            <div
+              key={item.id}
+              className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all ${
+                item.isChecked
+                  ? 'bg-[#FFF8EE] border-[#FFE3C9] opacity-60'
+                  : 'bg-white border-[#FFD9B8] shadow-[0_2px_8px_rgba(42,26,18,0.06)]'
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => onToggle(item.id)}
+                className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer ${
+                  item.isChecked ? 'bg-art-orange border-art-orange' : 'border-[#FFB57A] hover:border-art-orange'
+                }`}
+              >
+                {item.isChecked && <span className="text-white font-black text-xs leading-none">✓</span>}
+              </button>
+              <span className="text-xl shrink-0">{item.emoji}</span>
+              <span className={`flex-1 text-sm font-semibold ${item.isChecked ? 'line-through text-art-text/40' : 'text-art-text'}`}>
+                {item.text}
+              </span>
+              {activeTab === 'shared' && item.assignedTo && (
+                <span className="text-[10px] font-black bg-[#FFF4E6] border border-[#FFD9B8] px-2 py-0.5 rounded-full text-art-text/60 shrink-0">
+                  {assigneeMember
+                    ? (assigneeMember.avatarUrl + ' ' + (assigneeMember.nickname || assigneeMember.name).split(' ')[0])
+                    : item.assignedTo}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => onDelete(item.id)}
+                className="text-art-text/20 hover:text-art-garnet transition-colors cursor-pointer shrink-0 p-1"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <p className="font-mono text-[10px] text-white/40 text-right max-w-[140px] uppercase tracking-wide leading-relaxed">
-              {t('Recorda aquests essencials', 'Remember these essentials', 'Recuerda lo esencial')}
-            </p>
+          );
+        })}
+      </div>
+
+      {showAdd ? (
+        <div className="bg-white border border-[#FFD9B8] rounded-2xl p-4 shadow-[0_4px_16px_rgba(42,26,18,0.10)] flex flex-col gap-3 animate-fadeIn">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-art-text/35">
+            {t('Afegir article', 'Add item', 'Anadir articulo')} · {activeTab === 'shared' ? '🤝' : '🎒'}
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newEmoji}
+              onChange={e => setNewEmoji(e.target.value)}
+              className="w-12 text-center text-xl border border-[#FFD9B8] rounded-xl px-1 py-2 focus:outline-none focus:border-art-orange"
+              maxLength={2}
+            />
+            <input
+              type="text"
+              value={newText}
+              onChange={e => setNewText(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAdd()}
+              placeholder={t("Nom de l'article", 'Item name', 'Nombre del articulo')}
+              className="flex-1 border border-[#FFD9B8] rounded-xl px-3 py-2 text-sm font-medium text-art-text focus:outline-none focus:border-art-orange bg-[#FFF4E6]"
+              autoFocus
+            />
           </div>
-
-          {/* Personal items from Firestore (if any) */}
-          {personalItems.length > 0 && (
-            <div className="flex flex-col gap-2">
-              {personalItems.map(item => (
-                <div
-                  key={item.id}
-                  onClick={() => onToggle(item.id)}
-                  className={`flex items-center gap-3 rounded-2xl border px-4 py-3 cursor-pointer transition-all ${
-                    item.isChecked
-                      ? 'bg-[#FFF8EE] border-[#FFE3C9] opacity-65'
-                      : 'bg-white border-[#FFD9B8] shadow-[0_2px_8px_rgba(42,26,18,0.06)] hover:border-art-orange'
-                  }`}
-                >
-                  <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 ${
-                    item.isChecked ? 'bg-art-orange border-art-orange' : 'border-[#FFB57A]'
-                  }`}>
-                    {item.isChecked && <span className="text-white font-black text-xs leading-none">✓</span>}
-                  </div>
-                  <span className="text-xl shrink-0">{item.emoji}</span>
-                  <span className={`flex-1 text-sm font-semibold ${item.isChecked ? 'line-through text-art-text/40' : 'text-art-text'}`}>
-                    {item.text}
-                  </span>
-                </div>
+          {activeTab === 'shared' && (
+            <select
+              value={newAssignee}
+              onChange={e => setNewAssignee(e.target.value)}
+              className="w-full border border-[#FFD9B8] rounded-xl px-3 py-2 text-sm text-art-text bg-[#FFF4E6] focus:outline-none focus:border-art-orange cursor-pointer"
+            >
+              <option value="">{t('Sense assignar', 'Unassigned', 'Sin asignar')}</option>
+              {members.map(m => (
+                <option key={m.id} value={m.id}>{m.avatarUrl} {m.nickname || m.name}</option>
               ))}
-            </div>
+            </select>
           )}
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setShowAdd(false)}
+              className="flex-1 py-2 border border-[#FFD9B8] bg-white text-art-text/60 font-black text-xs uppercase rounded-xl cursor-pointer hover:bg-[#FFF4E6] transition-colors">
+              {t('Cancel·lar', 'Cancel', 'Cancelar')}
+            </button>
+            <button type="button" onClick={handleAdd}
+              className="flex-1 py-2 bg-art-orange text-white font-black text-xs uppercase rounded-xl cursor-pointer hover:bg-art-garnet transition-colors shadow-[0_2px_8px_rgba(255,90,31,0.30)]">
+              {t('Afegir', 'Add', 'Anadir')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowAdd(true)}
+          className="flex items-center gap-3 w-full bg-white border border-dashed border-[#FFD9B8] rounded-2xl px-4 py-3 text-art-text/40 hover:text-art-orange hover:border-art-orange transition-all cursor-pointer group"
+        >
+          <div className="w-8 h-8 rounded-xl bg-[#FFF4E6] group-hover:bg-art-orange flex items-center justify-center transition-colors">
+            <Plus className="w-4 h-4 text-art-text/40 group-hover:text-white transition-colors" />
+          </div>
+          <span className="font-mono text-[10px] uppercase tracking-wider">
+            {t('Afegir article', 'Add item', 'Anadir articulo')}
+          </span>
+        </button>
+      )}
 
-          {/* Tips chips */}
-          <div>
-            <p className="font-mono text-[9px] uppercase tracking-widest text-art-text/30 mb-3">
-              {t('Consells habituals', 'Common essentials', 'Cosas típicas')}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {personalPackingTips.map((tip, i) => (
-                <span
+      {activeTab === 'personal' && (
+        <div className="mt-2">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-art-text/30 mb-3">
+            {t('Suggeriments', 'Suggestions', 'Sugerencias')}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {PERSONAL_TIPS.map((tip, i) => {
+              const parts = tip.split(' ');
+              const emoji = parts[0];
+              const text = parts.slice(1).join(' ');
+              return (
+                <button
                   key={i}
-                  className="px-3 py-1.5 bg-white border border-[#FFD9B8] rounded-2xl text-sm font-semibold text-art-text shadow-[0_1px_4px_rgba(42,26,18,0.06)]"
+                  type="button"
+                  onClick={() => onAdd({ text, emoji, type: 'personal', assignedTo: activeMemberId, isChecked: false })}
+                  className="px-3 py-1.5 bg-white border border-[#FFD9B8] rounded-2xl text-sm font-semibold text-art-text shadow-[0_1px_4px_rgba(42,26,18,0.06)] hover:border-art-orange hover:bg-[#FFF4E6] transition-all cursor-pointer"
                 >
                   {tip}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-[#FFF4E6] border border-[#FFD9B8] rounded-2xl p-4 flex gap-3">
-            <span className="text-xl shrink-0">💡</span>
-            <p className="text-xs text-art-text/60 font-medium leading-relaxed">
-              {t(
-                'Els articles personals els gestiones localment. Marca el que ja tens posat a la maleta.',
-                'Personal items are managed locally. Check off what you\'ve already packed.',
-                'Los artículos personales son locales. Marca lo que ya tienes en la maleta.'
-              )}
-            </p>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
