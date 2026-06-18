@@ -1,4 +1,4 @@
-import { Member, SightseeingItem, PlanItem, VoteItem } from './types';
+import { Member, SightseeingItem, PlanItem, VoteItem, ShoppingItem, Recipe, PackingItem } from './types';
 
 export const defaultMembers: Member[] = [
   { id: 'sally', name: 'Sally', nickname: 'Sally Jefaza', avatarUrl: '💃', role: 'rolePlanner', color: 'from-pink-400 to-rose-600' },
@@ -284,4 +284,86 @@ export const defaultExpenses: any[] = [
     splitBetween: ['lluc', 'luke', 'jesus', 'eva', 'amiga_eva'], // split among some
     date: '2026-06-23',
   },
+];
+
+// ── Shopping list ──────────────────────────────────────────
+
+export const defaultShoppingCategories = [
+  { id: 'fruita', label: 'Fruita i verdura', emoji: '🥬' },
+  { id: 'begudes', label: 'Begudes', emoji: '🧃' },
+  { id: 'proteines', label: 'Carn i peix', emoji: '🥩' },
+  { id: 'lactis', label: 'Làctics i ous', emoji: '🥛' },
+  { id: 'congelats', label: 'Congelats', emoji: '🧊' },
+  { id: 'altres', label: 'Altres', emoji: '🛒' },
+];
+
+export const defaultShoppingItems: ShoppingItem[] = [
+  { id: 'sh1', text: 'Tomàquets · 2 kg',    emoji: '🍅', category: 'fruita',    isChecked: false, addedBy: '' },
+  { id: 'sh2', text: 'Llimones · 6',        emoji: '🍋', category: 'fruita',    isChecked: true,  addedBy: '' },
+  { id: 'sh3', text: 'Pebres · 4',          emoji: '🫑', category: 'fruita',    isChecked: false, addedBy: '' },
+  { id: 'sh4', text: 'Cervesa · 3 packs',   emoji: '🍺', category: 'begudes',   isChecked: false, addedBy: '' },
+  { id: 'sh5', text: 'Aigua · 8 ampolles',  emoji: '💧', category: 'begudes',   isChecked: false, addedBy: '' },
+  { id: 'sh6', text: 'Gel · 3 bosses',      emoji: '🧊', category: 'congelats', isChecked: true,  addedBy: '' },
+  { id: 'sh7', text: 'Pollastre · 3 kg',    emoji: '🍗', category: 'proteines', isChecked: false, addedBy: '' },
+  { id: 'sh8', text: 'Arròs bomba · 1 kg',  emoji: '🌾', category: 'altres',    isChecked: false, addedBy: '' },
+  { id: 'sh9', text: 'Oli d\'oliva · 1 L',  emoji: '🫒', category: 'altres',    isChecked: false, addedBy: '' },
+  { id: 'sh10', text: 'Ous · 12',           emoji: '🥚', category: 'lactis',    isChecked: true,  addedBy: '' },
+  { id: 'sh11', text: 'Pa de motlle',       emoji: '🍞', category: 'altres',    isChecked: false, addedBy: '' },
+  { id: 'sh12', text: 'Safrà',              emoji: '🌿', category: 'altres',    isChecked: false, addedBy: '' },
+];
+
+// ── Recipes ────────────────────────────────────────────────
+export const defaultRecipes: Recipe[] = [
+  {
+    id: 'rec1', name: 'Paella valenciana', emoji: '🥘',
+    dayLabel: 'Dissabte', mealType: 'dinar',
+    servings: 10, timeMinutes: 45, author: 'Manel',
+    ingredients: ['Arròs bomba', 'Pollastre', 'Garrofó', 'Tomàquet', 'Safrà', 'Pebre roig', 'Mongeta tendra', 'Oli d\'oliva'],
+  },
+  {
+    id: 'rec2', name: 'Amanida d\'estiu', emoji: '🥗',
+    dayLabel: 'Diumenge', mealType: 'dinar',
+    servings: 10, timeMinutes: 15, author: 'Sally',
+    ingredients: ['Enciams', 'Tomàquets cherry', 'Olives', 'Formatge feta', 'Cogombre'],
+  },
+  {
+    id: 'rec3', name: 'Fideuà de marisc', emoji: '🍝',
+    dayLabel: 'Dilluns', mealType: 'dinar',
+    servings: 10, timeMinutes: 40, author: 'Alba',
+    ingredients: ['Fideus gruixuts', 'Gambes', 'Clòtxines', 'Calamar', 'Fumet de peix'],
+  },
+  {
+    id: 'rec4', name: 'Paella negra', emoji: '🦑',
+    dayLabel: 'Dimecres', mealType: 'dinar',
+    servings: 10, timeMinutes: 50, author: 'Roger',
+    ingredients: ['Arròs', 'Calamar', 'Tinta de calamar', 'Ceba', 'All'],
+  },
+  {
+    id: 'rec5', name: 'Tapes assortides', emoji: '🍤',
+    dayLabel: 'Dijous', mealType: 'sopar',
+    servings: 10, timeMinutes: 20, author: '',
+    ingredients: ['Pa', 'Pernil', 'Formatge', 'Anxoves', 'Botifarró'],
+  },
+  {
+    id: 'rec6', name: 'Sangria de la colla', emoji: '🍷',
+    dayLabel: 'Tots els dies', mealType: 'picnic',
+    servings: 10, timeMinutes: 10, author: 'Lluc',
+    ingredients: ['Vi negre', 'Taronja', 'Llimona', 'Canyella', 'Brandi', 'Casera'],
+  },
+];
+
+// ── Packing list ───────────────────────────────────────────
+export const defaultPackingItems: PackingItem[] = [
+  { id: 'pk1',  text: 'Para-sol gros',      emoji: '⛱️', type: 'shared',   assignedTo: 'sally', isChecked: false },
+  { id: 'pk2',  text: 'Nevera portàtil',    emoji: '🧊', type: 'shared',   assignedTo: 'lluc',  isChecked: true  },
+  { id: 'pk3',  text: 'Altaveu Bluetooth',  emoji: '🔊', type: 'shared',   assignedTo: 'manel', isChecked: false },
+  { id: 'pk4',  text: 'Farmaciola',         emoji: '🏥', type: 'shared',   assignedTo: 'alba',  isChecked: false },
+  { id: 'pk5',  text: 'Cartes + jocs',      emoji: '🃏', type: 'shared',   assignedTo: 'roger', isChecked: false },
+  { id: 'pk6',  text: 'Corda per a roba',   emoji: '🪢', type: 'shared',   assignedTo: 'eva',   isChecked: false },
+];
+
+export const personalPackingTips = [
+  '🧴 Crema solar', '🕶️ Ulleres de sol', '🔌 Carregador', '🩴 Xancletes',
+  '💊 Medicació', '🛂 DNI', '🩱 Banyador', '📱 Càstig de mòbil',
+  '🎧 Auriculars', '💸 Diners en efectiu', '🪥 Necesser',
 ];

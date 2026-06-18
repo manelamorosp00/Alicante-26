@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Language, Member, Expense, PlanItem, VoteItem, WheelConfig, DrinkCount } from './types';
+import { Language, Member, Expense, PlanItem, VoteItem, WheelConfig, DrinkCount, ShoppingItem, Recipe, PackingItem } from './types';
 import { t } from './translations';
 import {
   defaultMembers,
@@ -7,6 +7,9 @@ import {
   defaultPlans,
   defaultVotes,
   defaultSightseeings,
+  defaultShoppingItems,
+  defaultRecipes,
+  defaultPackingItems,
   punishmentOptions
 } from './data';
 import { SpinningWheel } from './components/SpinningWheel';
@@ -14,6 +17,9 @@ import { ExpenseSplitter } from './components/ExpenseSplitter';
 import { ItineraryTimeline } from './components/ItineraryTimeline';
 import { SightseeingGrid } from './components/SightseeingGrid';
 import { MyProfile } from './components/MyProfile';
+import { ShoppingList } from './components/ShoppingList';
+import { Receptes } from './components/Receptes';
+import { PackingList } from './components/PackingList';
 import { TutorialOverlay } from './components/TutorialOverlay';
 import { Recomanacions } from './components/Recomanacions';
 import { db, auth, googleProvider } from './firebase';
@@ -45,7 +51,9 @@ import {
   Beer,
   Wine,
   GlassWater,
-  MoreHorizontal
+  MoreHorizontal,
+  ShoppingCart,
+  Backpack
 } from 'lucide-react';
 
 
@@ -86,11 +94,13 @@ export default function App() {
 
   // New features state
   const [drinks, setDrinks] = useState<DrinkCount[]>([]);
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
+  const [packingItems, setPackingItems]   = useState<PackingItem[]>([]);
   const [alacantTemp, setAlacantTemp] = useState<number | null>(null);
   const [weatherCode, setWeatherCode] = useState<number | null>(null);
 
   // 4. Tab selection state
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'plans' | 'recomanacions' | 'sightseeing' | 'games' | 'begudes' | 'profiles'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'plans' | 'recomanacions' | 'sightseeing' | 'games' | 'begudes' | 'profiles' | 'compra' | 'receptes' | 'portar'>('dashboard');
 
   // Bridge: Recomanacions → Plans tab prefill
   const [prefillPlan, setPrefillPlan] = useState<Partial<PlanItem> | undefined>(undefined);
@@ -341,6 +351,32 @@ export default function App() {
     }, (error) => console.warn('[drinks] Firestore error:', error.message));
 
 
+    // 7. Sync Shopping list
+    const unsubShopping = onSnapshot(collection(db, 'shopping'), (snapshot) => {
+      if (snapshot.empty) {
+        defaultShoppingItems.forEach((item) => {
+          setDoc(doc(db, 'shopping', item.id), item).catch(() => {});
+        });
+      } else {
+        const list: ShoppingItem[] = [];
+        snapshot.forEach((d) => list.push(d.data() as ShoppingItem));
+        setShoppingItems(list);
+      }
+    }, (error) => console.warn('[shopping] Firestore error:', error.message));
+
+    // 8. Sync Packing list
+    const unsubPacking = onSnapshot(collection(db, 'packing'), (snapshot) => {
+      if (snapshot.empty) {
+        defaultPackingItems.forEach((item) => {
+          setDoc(doc(db, 'packing', item.id), item).catch(() => {});
+        });
+      } else {
+        const list: PackingItem[] = [];
+        snapshot.forEach((d) => list.push(d.data() as PackingItem));
+        setPackingItems(list);
+      }
+    }, (error) => console.warn('[packing] Firestore error:', error.message));
+
     return () => {
       unsubMembers();
       unsubExpenses();
@@ -348,6 +384,8 @@ export default function App() {
       unsubVotes();
       unsubWheels();
       unsubDrinks();
+      unsubShopping();
+      unsubPacking();
     };
   }, [firebaseUser]);
 
@@ -427,6 +465,60 @@ export default function App() {
   // ── Bingo handlers ──────────────────────────────────────────────────────────
 
   // Handlers for Expenses (cloud-synchronized)
+  // ── Shopping handlers ─────────────────────────────────────────────────────
+  const handleToggleShoppingItem = async (id: string) => {
+    const item = shoppingItems.find(i => i.id === id);
+    if (!item) return;
+    const updated = { ...item, isChecked: !item.isChecked };
+    setShoppingItems(prev => prev.map(i => i.id === id ? updated : i));
+    try {
+      await setDoc(doc(db, 'shopping', id), updated);
+    } catch (err) { console.error('[shopping] toggle error:', err); }
+  };
+
+  const handleAddShoppingItem = async (item: Omit<ShoppingItem, 'id'>) => {
+    const id = 'sh_' + Date.now();
+    const full: ShoppingItem = { ...item, id };
+    setShoppingItems(prev => [...prev, full]);
+    try {
+      await setDoc(doc(db, 'shopping', id), full);
+    } catch (err) { console.error('[shopping] add error:', err); }
+  };
+
+  const handleDeleteShoppingItem = async (id: string) => {
+    setShoppingItems(prev => prev.filter(i => i.id !== id));
+    try {
+      await deleteDoc(doc(db, 'shopping', id));
+    } catch (err) { console.error('[shopping] delete error:', err); }
+  };
+
+  // ── Packing handlers ────────────────────────────────────────────────────────
+  const handleTogglePackingItem = async (id: string) => {
+    const item = packingItems.find(i => i.id === id);
+    if (!item) return;
+    const updated = { ...item, isChecked: !item.isChecked };
+    setPackingItems(prev => prev.map(i => i.id === id ? updated : i));
+    try {
+      await setDoc(doc(db, 'packing', id), updated);
+    } catch (err) { console.error('[packing] toggle error:', err); }
+  };
+
+  // ── Recipes: add ingredients to shopping ────────────────────────────────────
+  const handleAddIngredientsToShopping = async (ingredients: string[], recipeName: string) => {
+    const newItems: ShoppingItem[] = ingredients.map((ing, idx) => ({
+      id: 'sh_rec_' + Date.now() + '_' + idx,
+      text: ing,
+      emoji: '🍴',
+      category: 'altres',
+      isChecked: false,
+      addedBy: activeMemberId,
+    }));
+    setShoppingItems(prev => [...prev, ...newItems]);
+    try {
+      await Promise.all(newItems.map(item => setDoc(doc(db, 'shopping', item.id), item)));
+    } catch (err) { console.error('[shopping] addIngredients error:', err); }
+  };
+
   const handleAddExpense = async (newExp: Omit<Expense, 'id'>) => {
     const id = 'exp_' + Date.now();
     const expense: Expense = {
@@ -1755,6 +1847,38 @@ export default function App() {
             </div>
           )}
 
+          {/* 7. SHOPPING LIST VIEW */}
+          {activeTab === 'compra' && (
+            <ShoppingList
+              language={language}
+              items={shoppingItems}
+              activeMemberId={activeMemberId}
+              onToggle={handleToggleShoppingItem}
+              onAdd={handleAddShoppingItem}
+              onDelete={handleDeleteShoppingItem}
+            />
+          )}
+
+          {/* 8. RECEPTES VIEW */}
+          {activeTab === 'receptes' && (
+            <Receptes
+              language={language}
+              recipes={defaultRecipes}
+              onAddToShopping={handleAddIngredientsToShopping}
+            />
+          )}
+
+          {/* 9. PACKING LIST VIEW */}
+          {activeTab === 'portar' && (
+            <PackingList
+              language={language}
+              items={packingItems}
+              members={members}
+              activeMemberId={activeMemberId}
+              onToggle={handleTogglePackingItem}
+            />
+          )}
+
           {/* 6. MY PROFILE VIEW */}
           {activeTab === 'profiles' && (() => {
             const me = members.find(m => m.id === activeMemberId);
@@ -1812,10 +1936,10 @@ export default function App() {
             type="button"
             onClick={() => setShowMoreMenu(prev => !prev)}
             className="flex flex-col items-center gap-0.5 px-3 py-2 min-w-[56px] select-none transition-colors"
-            style={{ color: (['recomanacions','sightseeing','games','profiles'] as const).some(t => t === activeTab) || showMoreMenu ? '#E0290B' : 'rgba(42,26,18,0.40)' }}
+            style={{ color: (['recomanacions','sightseeing','games','profiles','compra','receptes','portar'] as const).some(t => t === activeTab) || showMoreMenu ? '#E0290B' : 'rgba(42,26,18,0.40)' }}
           >
             <MoreHorizontal className="w-5 h-5" />
-            {(['recomanacions','sightseeing','games','profiles'] as const).some(t => t === activeTab) && <span className="block w-1 h-1 rounded-full" style={{ background: '#E0290B' }} />}
+            {(['recomanacions','sightseeing','games','profiles','compra','receptes','portar'] as const).some(t => t === activeTab) && <span className="block w-1 h-1 rounded-full" style={{ background: '#E0290B' }} />}
             <span className="text-[8px] font-black uppercase tracking-wide leading-none mt-0.5">{language === 'ca' ? 'Més' : language === 'en' ? 'More' : 'Más'}</span>
           </button>
         </nav>
@@ -1832,12 +1956,15 @@ export default function App() {
               onClick={e => e.stopPropagation()}
             >
               <span className="text-[9px] uppercase font-black text-art-text/40 tracking-widest mb-3 block">{language === 'ca' ? 'Més seccions' : language === 'en' ? 'More sections' : 'Más secciones'}</span>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {([
-                  { tab: 'recomanacions' as const, icon: <Compass className="w-4 h-4" />, label: language === 'ca' ? 'Recomanacions' : language === 'en' ? 'Tips'     : 'Recomendaciones' },
-                  { tab: 'sightseeing'   as const, icon: <MapPin  className="w-4 h-4" />, label: language === 'ca' ? 'Sightseeing'   : language === 'en' ? 'Places'   : 'Turismo'         },
-                  { tab: 'games'         as const, icon: <Dices   className="w-4 h-4" />, label: language === 'ca' ? 'Jocs'          : language === 'en' ? 'Games'    : 'Juegos'           },
-                  { tab: 'profiles'      as const, icon: <Users   className="w-4 h-4" />, label: language === 'ca' ? 'Perfil'        : language === 'en' ? 'Profile'  : 'Perfil'         },
+                  { tab: 'recomanacions' as const, icon: <Compass     className="w-4 h-4" />, label: language === 'ca' ? 'Recomanacions' : language === 'en' ? 'Tips'     : 'Recomendaciones' },
+                  { tab: 'sightseeing'   as const, icon: <MapPin    className="w-4 h-4" />, label: language === 'ca' ? 'Sightseeing'   : language === 'en' ? 'Places'   : 'Turismo'         },
+                  { tab: 'games'         as const, icon: <Dices     className="w-4 h-4" />, label: language === 'ca' ? 'Jocs'          : language === 'en' ? 'Games'    : 'Juegos'           },
+                  { tab: 'compra'        as const, icon: <ShoppingCart className="w-4 h-4" />, label: language === 'ca' ? 'La compra'  : language === 'en' ? 'Shopping' : 'La compra'        },
+                  { tab: 'receptes'      as const, icon: <Utensils  className="w-4 h-4" />, label: language === 'ca' ? 'Receptes'     : language === 'en' ? 'Recipes'  : 'Recetas'          },
+                  { tab: 'portar'        as const, icon: <Backpack  className="w-4 h-4" />, label: language === 'ca' ? 'Què cal portar' : language === 'en' ? 'Packing' : 'Qué llevar'      },
+                  { tab: 'profiles'      as const, icon: <Users     className="w-4 h-4" />, label: language === 'ca' ? 'Perfil'        : language === 'en' ? 'Profile'  : 'Perfil'         },
                 ] as const).map(({ tab, icon, label }) => {
                   const isActive = activeTab === tab;
                   return (

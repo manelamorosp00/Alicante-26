@@ -114,3 +114,73 @@ export interface PlaylistSong {
   addedBy: string;     // Member ID
   addedAt: string;     // ISO timestamp
 }
+
+// ── Shopping List ──────────────────────────────────────────
+export interface ShoppingItem {
+  id: string;
+  text: string;
+  emoji: string;
+  category: string;
+  isChecked: boolean;
+  addedBy: string; // memberId
+}
+
+// ── Recipes ────────────────────────────────────────────────
+export type MealType = 'dinar' | 'sopar' | 'picnic';
+
+export interface Recipe {
+  id: string;
+  name: string;
+  emoji: string;
+  dayLabel: string;
+  mealType: MealType;
+  servings: number;
+  timeMinutes: number;
+  author: string;
+  ingredients: string[];
+}
+
+// ── Packing List ───────────────────────────────────────────
+export interface PackingItem {
+  id: string;
+  text: string;
+  emoji: string;
+  type: 'shared' | 'personal';
+  assignedTo: string;
+  isChecked: boolean;
+}
+
+// ── Shopping List ──────────────────────────────────────────
+export interface ShoppingItem {
+  id: string;
+  text: string;
+  emoji: string;
+  category: string;
+  isChecked: boolean;
+  addedBy: string; // memberId
+}
+
+// ── Recipes ────────────────────────────────────────────────
+export type MealType = 'dinar' | 'sopar' | 'picnic';
+
+export interface Recipe {
+  id: string;
+  name: string;
+  emoji: string;
+  dayLabel: string;     // e.g. 'Dissabte'
+  mealType: MealType;
+  servings: number;
+  timeMinutes: number;
+  author: string;       // name or memberId
+  ingredients: string[];
+}
+
+// ── Packing List ───────────────────────────────────────────
+export interface PackingItem {
+  id: string;
+  text: string;
+  emoji: string;
+  type: 'shared' | 'personal';
+  assignedTo: string;  // memberId or display name
+  isChecked: boolean;
+}
