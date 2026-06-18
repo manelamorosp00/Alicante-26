@@ -23,7 +23,7 @@ import { PackingList } from './components/PackingList';
 import { TutorialOverlay } from './components/TutorialOverlay';
 import { Recomanacions } from './components/Recomanacions';
 import { db, auth, googleProvider } from './firebase';
-import { signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, browserSessionPersistence, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, browserSessionPersistence, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocs } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from './firebaseUtils';
 import {
@@ -179,12 +179,19 @@ export default function App() {
   const handleGoogleLogin = async () => {
     setAuthLoading(true);
     try {
-      // Use redirect always — works in incognito, Safari, and all browsers
-      // (popup fails in incognito due to third-party cookie blocking)
-      await signInWithRedirect(auth, googleProvider);
-    } catch (err: any) {
-      console.error('[auth] Login error:', err?.code, err?.message);
+      // Popup first (fast UX in normal browsers)
+      await signInWithPopup(auth, googleProvider);
       setAuthLoading(false);
+    } catch (err: any) {
+      // Any popup failure (blocked, incognito cookie issue, cancelled) → redirect
+      console.warn('[auth] Popup failed, falling back to redirect:', err?.code);
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        // redirect navigates away — setAuthLoading not needed
+      } catch (redirectErr: any) {
+        console.error('[auth] Redirect also failed:', redirectErr?.code);
+        setAuthLoading(false);
+      }
     }
   };
 
