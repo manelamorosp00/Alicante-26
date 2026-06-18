@@ -176,23 +176,12 @@ export default function App() {
   const handleGoogleLogin = async () => {
     setAuthLoading(true);
     try {
-      // No await before signInWithPopup — preserves the browser's user-gesture context
-      // so the popup is never blocked. (setPersistence is called once on app init above.)
-      await signInWithPopup(auth, googleProvider);
-      setAuthLoading(false);
+      // Use redirect always — works in incognito, Safari, and all browsers
+      // (popup fails in incognito due to third-party cookie blocking)
+      await signInWithRedirect(auth, googleProvider);
     } catch (err: any) {
-      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
-        // Only fall back to redirect if the popup was explicitly blocked
-        try {
-          await signInWithRedirect(auth, googleProvider);
-        } catch (redirectErr) {
-          console.error('[auth] Redirect fallback error:', redirectErr);
-          setAuthLoading(false);
-        }
-      } else {
-        console.error('[auth] Login error:', err?.code, err?.message);
-        setAuthLoading(false);
-      }
+      console.error('[auth] Login error:', err?.code, err?.message);
+      setAuthLoading(false);
     }
   };
 
