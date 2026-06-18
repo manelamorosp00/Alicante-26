@@ -43,7 +43,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({
     <div className="animate-fadeIn max-w-lg mx-auto flex flex-col gap-5">
 
       {/* ── Profile card ────────────────────────────────────────── */}
-      <div className="bg-white border-2 border-[#2d2d2d] shadow-[4px_4px_0px_0px_#2d2d2d]">
+      <div className="bg-white border border-[#FFD9B8] shadow-[0_4px_16px_rgba(42,26,18,0.12)]">
         {/* Color bar */}
         <div className={`h-2 bg-gradient-to-r ${me.color}`} />
 
@@ -51,7 +51,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({
 
           {/* Avatar + name row */}
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full border-2 border-[#2d2d2d] bg-[#fdfaf2] flex items-center justify-center text-3xl shadow-[2px_2px_0px_0px_#2d2d2d] shrink-0 select-none">
+            <div className="w-16 h-16 rounded-full border-2 border-art-orange bg-[#FFF4E6] flex items-center justify-center text-3xl shadow-[0_4px_12px_rgba(255,90,31,0.20)] shrink-0 select-none">
               {editing ? avatar : me.avatarUrl}
             </div>
             <div className="flex-1 min-w-0">
@@ -68,7 +68,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({
               <button
                 type="button"
                 onClick={() => setEditing(true)}
-                className="p-2.5 border-2 border-[#2d2d2d] bg-[#fdfaf2] hover:bg-art-yellow text-art-text rounded-none transition-all cursor-pointer shadow-[2px_2px_0px_0px_#2d2d2d] hover:translate-y-[-1px] shrink-0"
+                className="p-2.5 border border-[#FFD9B8] bg-[#FFF4E6] hover:bg-art-yellow text-art-text rounded-2xl transition-all cursor-pointer shadow-[0_2px_8px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] shrink-0"
                 title={language === 'ca' ? 'Editar perfil' : language === 'en' ? 'Edit profile' : 'Editar perfil'}
               >
                 <Edit2 className="w-4 h-4" />
@@ -78,7 +78,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({
 
           {/* Edit form */}
           {editing && (
-            <div className="flex flex-col gap-4 pt-1 border-t-2 border-[#2d2d2d]/10">
+            <div className="flex flex-col gap-4 pt-1 border-t-2 border-[#FFD9B8]/40">
 
               {/* Nickname */}
               <div>
@@ -89,7 +89,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({
                   type="text"
                   value={nickname}
                   onChange={e => setNickname(e.target.value)}
-                  className="w-full px-3 py-2.5 border-2 border-[#2d2d2d] bg-[#fdfaf2] font-bold text-sm text-art-text outline-none focus:border-art-orange transition-colors"
+                  className="w-full px-3 py-2.5 border border-[#FFD9B8] bg-[#FFF4E6] font-bold text-sm text-art-text outline-none focus:border-art-orange transition-colors"
                 />
               </div>
 
@@ -99,16 +99,16 @@ export const MyProfile: React.FC<MyProfileProps> = ({
                   {language === 'ca' ? 'Avatar' : language === 'en' ? 'Avatar' : 'Avatar'}
                   <span className="ml-2 text-lg">{avatar}</span>
                 </span>
-                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-2.5 bg-[#fdfaf2] border-2 border-[#2d2d2d]">
+                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-2.5 bg-[#FFF4E6] border border-[#FFD9B8]">
                   {cuteEmojis.map(emoji => (
                     <button
                       key={emoji}
                       type="button"
                       onClick={() => setAvatar(emoji)}
-                      className={`w-9 h-9 flex items-center justify-center text-xl rounded-none border-2 transition-all cursor-pointer ${
+                      className={`w-9 h-9 flex items-center justify-center text-xl rounded-2xl border-2 transition-all cursor-pointer ${
                         avatar === emoji
-                          ? 'bg-art-orange border-[#2d2d2d] shadow-none scale-110'
-                          : 'bg-white border-transparent hover:border-[#2d2d2d]/30 hover:bg-slate-50'
+                          ? 'bg-art-orange border-[#FFD9B8] shadow-none scale-110'
+                          : 'bg-white border-transparent hover:border-[#FFD9B8]/60 hover:bg-slate-50'
                       }`}
                     >
                       {emoji}
@@ -125,7 +125,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({
                 <select
                   value={role}
                   onChange={e => setRole(e.target.value)}
-                  className="w-full px-3 py-2.5 border-2 border-[#2d2d2d] bg-[#fdfaf2] font-bold text-sm outline-none focus:border-art-orange transition-colors cursor-pointer"
+                  className="w-full px-3 py-2.5 border border-[#FFD9B8] bg-[#FFF4E6] font-bold text-sm outline-none focus:border-art-orange transition-colors cursor-pointer"
                 >
                   {availableRoles.map(r => (
                     <option key={r} value={r}>{t(r, language)}</option>
@@ -138,7 +138,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="flex items-center gap-1.5 px-4 py-2 border-2 border-[#2d2d2d] bg-white text-art-text font-black uppercase text-xs tracking-wider cursor-pointer hover:bg-slate-50 transition-all"
+                  className="flex items-center gap-1.5 px-4 py-2 border border-[#FFD9B8] bg-white text-art-text font-black uppercase text-xs tracking-wider cursor-pointer hover:bg-slate-50 transition-all"
                 >
                   <X className="w-3.5 h-3.5" />
                   {t('cancelBtn', language)}
@@ -146,7 +146,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({
                 <button
                   type="button"
                   onClick={handleSave}
-                  className="flex items-center gap-1.5 px-4 py-2 border-2 border-[#2d2d2d] bg-art-yellow text-art-text font-black uppercase text-xs tracking-wider shadow-[2px_2px_0px_0px_#2d2d2d] hover:translate-y-[-1px] hover:shadow-[2px_4px_0px_0px_#2d2d2d] transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-4 py-2 border border-[#FFD9B8] bg-art-yellow text-art-text font-black uppercase text-xs tracking-wider shadow-[0_2px_8px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] hover:shadow-[0_4px_10px_rgba(42,26,18,0.10)] transition-all cursor-pointer"
                 >
                   <Check className="w-3.5 h-3.5 stroke-[2.5px]" />
                   {language === 'ca' ? 'Desar' : language === 'en' ? 'Save' : 'Guardar'}
@@ -158,9 +158,9 @@ export const MyProfile: React.FC<MyProfileProps> = ({
       </div>
 
       {/* ── Language ─────────────────────────────────────────────── */}
-      <div className="bg-white border-2 border-[#2d2d2d] shadow-[4px_4px_0px_0px_#2d2d2d] p-5">
+      <div className="bg-white border border-[#FFD9B8] shadow-[0_4px_16px_rgba(42,26,18,0.12)] p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Globe className="text-white bg-art-orange p-2 w-9 h-9 border-2 border-[#2d2d2d] shrink-0" />
+          <Globe className="text-white bg-art-orange p-2 w-9 h-9 border border-[#FFD9B8] shrink-0" />
           <span className="text-[10px] uppercase font-black text-art-text/40 tracking-wider">
             {language === 'ca' ? 'Idioma' : language === 'en' ? 'Language' : 'Idioma'}
           </span>
@@ -177,8 +177,8 @@ export const MyProfile: React.FC<MyProfileProps> = ({
               onClick={() => onLanguageChange(code)}
               className={`flex-1 py-2.5 border-2 font-black uppercase text-xs tracking-wide transition-all cursor-pointer ${
                 language === code
-                  ? 'bg-[#2d2d2d] border-[#2d2d2d] text-white shadow-[2px_2px_0px_0px_#FF6321]'
-                  : 'bg-white border-[#2d2d2d] text-art-text/60 hover:text-art-text hover:bg-[#fdfaf2]'
+                  ? 'bg-[#2A1A12] border-[#FFD9B8] text-white shadow-[0_2px_8px_rgba(255,90,31,0.25)]'
+                  : 'bg-white border-[#FFD9B8] text-art-text/60 hover:text-art-text hover:bg-[#FFF4E6]'
               }`}
             >
               {label}
@@ -191,7 +191,7 @@ export const MyProfile: React.FC<MyProfileProps> = ({
       <button
         type="button"
         onClick={onLogout}
-        className="w-full flex items-center justify-center gap-2 py-3 border-2 border-[#2d2d2d] bg-white text-art-text font-black uppercase text-xs tracking-wider shadow-[4px_4px_0px_0px_#2d2d2d] hover:bg-red-50 hover:border-red-400 hover:text-red-600 hover:shadow-[4px_4px_0px_0px_#f87171] transition-all cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 py-3 border border-[#FFD9B8] bg-white text-art-text font-black uppercase text-xs tracking-wider shadow-[0_4px_16px_rgba(42,26,18,0.12)] hover:bg-red-50 hover:border-red-400 hover:text-red-600 hover:shadow-[4px_4px_0px_0px_#f87171] transition-all cursor-pointer"
       >
         <LogOut className="w-4 h-4" />
         {language === 'ca' ? 'Tancar sessió' : language === 'en' ? 'Sign out' : 'Cerrar sesión'}

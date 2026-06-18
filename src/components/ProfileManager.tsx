@@ -94,7 +94,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-6 py-2">
       
       {/* Informative Header */}
-      <div className="bg-[#2d2d2d] border-2 border-[#2d2d2d] rounded-none p-5 text-xs sm:text-sm text-white flex gap-3 items-start md:max-w-xl shadow-[4px_4px_0px_0px_#FF6321]">
+      <div className="bg-[#2A1A12] border border-[#FFD9B8] rounded-2xl p-5 text-xs sm:text-sm text-white flex gap-3 items-start md:max-w-xl shadow-[0_4px_12px_rgba(255,90,31,0.25)]">
         <Sparkles className="text-art-yellow w-5 h-5 shrink-0 animate-pulse mt-0.5" />
         <div>
           <p className="font-black uppercase tracking-wider text-art-yellow">
@@ -119,10 +119,10 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
           return (
             <div
               key={member.id}
-              className={`rounded-none border-2 border-[#2d2d2d] p-5 flex flex-col gap-4 relative overflow-hidden transition-all duration-300
+              className={`rounded-2xl border border-[#FFD9B8] p-5 flex flex-col gap-4 relative overflow-hidden transition-all duration-300
                 ${isCurrentActive
-                  ? 'bg-gray-100 shadow-[3px_3px_0px_0px_#2d2d2d]'
-                  : 'bg-white shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_#2d2d2d]'
+                  ? 'bg-gray-100 shadow-[0_4px_12px_rgba(42,26,18,0.10)]'
+                  : 'bg-white shadow-[0_4px_12px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] hover:shadow-[0_4px_16px_rgba(42,26,18,0.12)]'
                 }`}
             >
               {/* Header profile background color flare */}
@@ -130,7 +130,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
 
               {/* Big checkmark overlay when active */}
               {isCurrentActive && (
-                <div className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-[#2d2d2d] border-2 border-[#2d2d2d] flex items-center justify-center shadow-[2px_2px_0px_0px_#2d2d2d]">
+                <div className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-[#2A1A12] border border-[#FFD9B8] flex items-center justify-center shadow-[0_2px_8px_rgba(42,26,18,0.10)]">
                   <Check className="w-4 h-4 text-white stroke-[3px]" />
                 </div>
               )}
@@ -139,7 +139,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
               <div className={`flex gap-4 items-center ${isCurrentActive ? 'opacity-60' : ''}`}>
 
                 {/* Current Avatar circle */}
-                <div className={`w-14 h-14 rounded-full border-2 border-[#2d2d2d] flex items-center justify-center text-2xl select-none shadow-[2px_2px_0px_0px_#2d2d2d] shrink-0 ${isCurrentActive ? 'bg-gray-200' : 'bg-white'}`}>
+                <div className={`w-14 h-14 rounded-full border border-[#FFD9B8] flex items-center justify-center text-2xl select-none shadow-[0_2px_8px_rgba(42,26,18,0.10)] shrink-0 ${isCurrentActive ? 'bg-gray-200' : 'bg-white'}`}>
                   {member.avatarUrl}
                 </div>
 
@@ -147,7 +147,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <h4 className="font-display font-black text-art-text text-sm truncate uppercase">{member.name}</h4>
                     {isCurrentActive && (
-                      <span className="bg-[#2d2d2d] text-white font-black text-[9px] px-1.5 py-0.5 border border-[#2d2d2d] rounded-none uppercase tracking-wider flex items-center gap-0.5">
+                      <span className="bg-[#2A1A12] text-white font-black text-[9px] px-1.5 py-0.5 border border-[#FFD9B8] rounded-2xl uppercase tracking-wider flex items-center gap-0.5">
                         <UserCheck className="w-2.5 h-2.5 shrink-0" />
                         {language === 'ca' ? 'Tu' : language === 'en' ? 'You' : 'Tú'}
                       </span>
@@ -170,7 +170,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                       type="text"
                       value={editNickname}
                       onChange={(e) => setEditNickname(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-[#2d2d2d] rounded-none bg-slate-50 focus:outline-[#2d2d2d] focus:outline-2 focus:outline-offset-0 font-bold text-art-text"
+                      className="w-full px-3 py-2 border border-[#FFD9B8] rounded-2xl bg-slate-50 focus:outline-[#2d2d2d] focus:outline-2 focus:outline-offset-0 font-bold text-art-text"
                     />
                   </div>
 
@@ -179,13 +179,13 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                     <span className="block font-black uppercase text-art-text/60 mb-1">
                       {language === 'ca' ? 'Triar Emoticona' : language === 'en' ? 'Select Emoji' : 'Morder Emoticono'}:
                     </span>
-                    <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 bg-[#fdfaf2] border-2 border-[#2d2d2d] rounded-none">
+                    <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 bg-[#FFF4E6] border border-[#FFD9B8] rounded-2xl">
                       {cuteEmojis.map((emoji) => (
                         <button
                           key={emoji}
                           type="button"
                           onClick={() => setEditAvatar(emoji)}
-                          className={`w-8 h-8 flex items-center justify-center text-lg rounded-none transition-all border ${editAvatar === emoji ? 'bg-art-orange border-2 border-[#2d2d2d] text-white shadow-none font-bold scale-110' : 'bg-white hover:bg-slate-100 border-slate-150'}`}
+                          className={`w-8 h-8 flex items-center justify-center text-lg rounded-2xl transition-all border ${editAvatar === emoji ? 'bg-art-orange border border-[#FFD9B8] text-white shadow-none font-bold scale-110' : 'bg-white hover:bg-slate-100 border-slate-150'}`}
                         >
                           {emoji}
                         </button>
@@ -202,7 +202,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                       id={`edit-role-${member.id}`}
                       value={editRole}
                       onChange={(e) => setEditRole(e.target.value)}
-                      className="w-full px-2 py-2 border-2 border-[#2d2d2d] rounded-none bg-slate-50 focus:outline-[#2d2d2d] focus:outline-2 focus:outline-offset-0 font-bold"
+                      className="w-full px-2 py-2 border border-[#FFD9B8] rounded-2xl bg-slate-50 focus:outline-[#2d2d2d] focus:outline-2 focus:outline-offset-0 font-bold"
                     >
                       {availableRoles.map(role => (
                         <option key={role} value={role}>
@@ -217,14 +217,14 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                     <button
                       type="button"
                       onClick={() => setEditingId(null)}
-                      className="px-3 py-1.5 border-2 border-[#2d2d2d] bg-white text-art-text font-black uppercase tracking-wider hover:bg-slate-50 cursor-pointer rounded-none"
+                      className="px-3 py-1.5 border border-[#FFD9B8] bg-white text-art-text font-black uppercase tracking-wider hover:bg-slate-50 cursor-pointer rounded-2xl"
                     >
                       {t('cancelBtn', language)}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSave(member.id)}
-                      className="px-4 py-1.5 border-2 border-[#2d2d2d] bg-art-yellow text-art-text font-black uppercase tracking-wider hover:bg-art-yellow/85 shadow-[2px_2px_0px_0px_#2d2d2d] hover:translate-y-[-1px] transition-all flex items-center gap-1 cursor-pointer rounded-none"
+                      className="px-4 py-1.5 border border-[#FFD9B8] bg-art-yellow text-art-text font-black uppercase tracking-wider hover:bg-art-yellow/85 shadow-[0_2px_8px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] transition-all flex items-center gap-1 cursor-pointer rounded-2xl"
                     >
                       <Check className="w-3.5 h-3.5 stroke-[2.5px]" />
                       {language === 'ca' ? 'Desar' : language === 'en' ? 'Save' : 'Guardá'}
@@ -235,12 +235,12 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                 <div className="flex flex-col gap-3 justify-between flex-1 text-xs">
                   
                   {/* Detailed Specs list */}
-                  <div className="flex flex-col gap-2 p-3 bg-[#fdfaf2] border-2 border-[#2d2d2d] rounded-none">
+                  <div className="flex flex-col gap-2 p-3 bg-[#FFF4E6] border border-[#FFD9B8] rounded-2xl">
                     <div className="flex justify-between items-center">
                       <span className="text-art-text/60 font-black uppercase tracking-wider text-[9px]">{language === 'ca' ? 'Apodo' : language === 'en' ? 'Nickname' : 'Sobrenombre'}:</span>
                       <span className="font-bold text-art-text text-xs sm:text-sm">{member.nickname || member.name}</span>
                     </div>
-                    <div className="border-t border-[#2d2d2d]/10 my-1"></div>
+                    <div className="border-t border-[#FFD9B8]/40 my-1"></div>
                     <div className="flex flex-col gap-0.5">
                       <span className="text-art-text/60 font-black uppercase tracking-wider text-[9px]">{language === 'ca' ? 'Rol oficial' : language === 'en' ? 'Role' : 'Cargo d\'ofisio'}:</span>
                       <span className="font-black text-art-text uppercase text-xs flex items-center gap-1.5 mt-0.5">
@@ -251,9 +251,9 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                   </div>
 
                   {/* Operational triggers */}
-                  <div className="flex items-center gap-2 pt-2 border-t-2 border-[#2d2d2d]/10">
+                  <div className="flex items-center gap-2 pt-2 border-t-2 border-[#FFD9B8]/40">
                     {isCurrentActive ? (
-                      <div className="flex-1 py-1.5 px-3 bg-gray-200 border-2 border-[#2d2d2d]/30 text-[#2d2d2d]/50 rounded-none font-black uppercase flex items-center justify-center gap-1 cursor-default select-none text-xs">
+                      <div className="flex-1 py-1.5 px-3 bg-gray-200 border border-[#FFD9B8]/30 text-[#2A1A12]/50 rounded-2xl font-black uppercase flex items-center justify-center gap-1 cursor-default select-none text-xs">
                         <Check className="w-3.5 h-3.5 stroke-[2.5px]" />
                         <span>{language === 'ca' ? 'Sessió activa' : language === 'en' ? 'Active session' : 'Se\'ión activa'}</span>
                       </div>
@@ -266,7 +266,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                       <button
                         type="button"
                         onClick={() => handleStartEdit(member)}
-                        className="p-2 border-2 border-[#2d2d2d] bg-[#fdfaf2] hover:bg-art-yellow hover:text-[#2d2d2d] text-art-text rounded-none transition-all cursor-pointer shadow-[2px_2px_0px_0px_#2d2d2d] active:shadow-none hover:translate-y-[-1px]"
+                        className="p-2 border border-[#FFD9B8] bg-[#FFF4E6] hover:bg-art-yellow hover:text-[#2A1A12] text-art-text rounded-2xl transition-all cursor-pointer shadow-[0_2px_8px_rgba(42,26,18,0.10)] active:shadow-none hover:translate-y-[-1px]"
                         title={language === 'ca' ? 'Editar perfil' : 'Edit profile'}
                       >
                         <Edit2 className="w-4 h-4" />
@@ -286,7 +286,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
           <button
             type="button"
             onClick={() => setShowAddForm(true)}
-            className="rounded-none border-2 border-dashed border-[#2d2d2d]/40 p-5 flex flex-col items-center justify-center gap-3 text-art-text/50 hover:text-art-text hover:border-[#2d2d2d] hover:bg-[#fdfaf2] transition-all cursor-pointer min-h-[180px] group"
+            className="rounded-2xl border-2 border-dashed border-[#FFD9B8]/40 p-5 flex flex-col items-center justify-center gap-3 text-art-text/50 hover:text-art-text hover:border-art-orange hover:bg-[#FFF4E6] transition-all cursor-pointer min-h-[180px] group"
           >
             <div className="w-12 h-12 rounded-full border-2 border-dashed border-current flex items-center justify-center group-hover:bg-art-orange/10 transition-all">
               <UserPlus className="w-5 h-5" />
@@ -298,7 +298,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
         ) : (
           <form
             onSubmit={handleAddSubmit}
-            className="rounded-none border-2 border-[#2d2d2d] p-5 flex flex-col gap-3.5 bg-white shadow-[4px_4px_0px_0px_#FF6321] relative"
+            className="rounded-2xl border border-[#FFD9B8] p-5 flex flex-col gap-3.5 bg-white shadow-[0_4px_12px_rgba(255,90,31,0.25)] relative"
           >
             {/* Close button */}
             <button
@@ -325,7 +325,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                 value={addName}
                 onChange={(e) => setAddName(e.target.value)}
                 placeholder={language === 'ca' ? 'ex: Maria' : 'e.g. Maria'}
-                className="w-full px-3 py-2 border-2 border-[#2d2d2d] rounded-none bg-slate-50 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-art-orange"
+                className="w-full px-3 py-2 border border-[#FFD9B8] rounded-2xl bg-slate-50 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-art-orange"
               />
             </div>
 
@@ -339,7 +339,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                 value={addNickname}
                 onChange={(e) => setAddNickname(e.target.value)}
                 placeholder={language === 'ca' ? 'ex: La Reina del Caos' : 'e.g. Queen of Chaos'}
-                className="w-full px-3 py-2 border-2 border-[#2d2d2d] rounded-none bg-slate-50 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-art-orange"
+                className="w-full px-3 py-2 border border-[#FFD9B8] rounded-2xl bg-slate-50 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-art-orange"
               />
             </div>
 
@@ -349,13 +349,13 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                 {language === 'ca' ? 'Avatar' : language === 'en' ? 'Avatar' : 'Avatar'}:
                 <span className="ml-2 text-lg">{addAvatar}</span>
               </span>
-              <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto p-2 bg-[#fdfaf2] border-2 border-[#2d2d2d] rounded-none">
+              <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto p-2 bg-[#FFF4E6] border border-[#FFD9B8] rounded-2xl">
                 {cuteEmojis.map((emoji) => (
                   <button
                     key={emoji}
                     type="button"
                     onClick={() => setAddAvatar(emoji)}
-                    className={`w-7 h-7 flex items-center justify-center text-base rounded-none transition-all border ${addAvatar === emoji ? 'bg-art-orange border-2 border-[#2d2d2d] scale-110' : 'bg-white hover:bg-slate-100 border-slate-200'}`}
+                    className={`w-7 h-7 flex items-center justify-center text-base rounded-2xl transition-all border ${addAvatar === emoji ? 'bg-art-orange border border-[#FFD9B8] scale-110' : 'bg-white hover:bg-slate-100 border-slate-200'}`}
                   >
                     {emoji}
                   </button>
@@ -371,7 +371,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
               <select
                 value={addRole}
                 onChange={(e) => setAddRole(e.target.value)}
-                className="w-full px-2 py-2 border-2 border-[#2d2d2d] rounded-none bg-slate-50 text-xs font-bold focus:outline-none"
+                className="w-full px-2 py-2 border border-[#FFD9B8] rounded-2xl bg-slate-50 text-xs font-bold focus:outline-none"
               >
                 {availableRoles.map(role => (
                   <option key={role} value={role}>{t(role, language)}</option>
@@ -383,7 +383,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
             <button
               type="submit"
               disabled={addSaving || !addName.trim()}
-              className="w-full py-2.5 border-2 border-[#2d2d2d] bg-art-orange text-white font-black uppercase text-xs shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-y-[-1px] hover:shadow-[3px_5px_0px_0px_#2d2d2d] active:translate-y-0 transition-all cursor-pointer rounded-none disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 flex items-center justify-center gap-2"
+              className="w-full py-2.5 border border-[#FFD9B8] bg-art-orange text-white font-black uppercase text-xs shadow-[0_4px_12px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] hover:shadow-[3px_5px_0px_0px_#2d2d2d] active:translate-y-0 transition-all cursor-pointer rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 flex items-center justify-center gap-2"
             >
               {addSaving ? '⏳' : <UserPlus className="w-4 h-4" />}
               {addSaving

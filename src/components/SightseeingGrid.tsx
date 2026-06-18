@@ -49,7 +49,7 @@ export const SightseeingGrid: React.FC<SightseeingGridProps> = ({ language, item
             key={cat}
             type="button"
             onClick={() => setFilter(cat)}
-            className={`px-4 py-2 border-2 border-[#2d2d2d] text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 select-none cursor-pointer ${filter === cat ? 'bg-art-orange text-white shadow-[2px_2px_0px_0px_#2d2d2d]' : 'bg-white text-art-text hover:bg-art-bg hover:translate-y-[-1px]'}`}
+            className={`px-4 py-2 border border-[#FFD9B8] text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 select-none cursor-pointer ${filter === cat ? 'bg-art-orange text-white shadow-[0_2px_8px_rgba(42,26,18,0.10)]' : 'bg-white text-art-text hover:bg-art-bg hover:translate-y-[-1px]'}`}
           >
             {getCategoryIcon(cat)}
             <span>{getCategoryName(cat)}</span>
@@ -60,17 +60,17 @@ export const SightseeingGrid: React.FC<SightseeingGridProps> = ({ language, item
       {/* Bento Grid layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.map(item => (
-          <div key={item.id} className="bg-white border-2 border-[#2d2d2d] shadow-[6px_6px_0px_0px_#2d2d2d] hover:shadow-[8px_8px_0px_0px_#2d2d2d] hover:translate-y-[-2px] transition-all flex flex-col group animate-fadeIn">
+          <div key={item.id} className="bg-white border border-[#FFD9B8] shadow-[0_6px_20px_rgba(42,26,18,0.14)] hover:shadow-[0_8px_24px_rgba(42,26,18,0.15)] hover:translate-y-[-2px] transition-all flex flex-col group animate-fadeIn">
             
             {/* Aspect image frame */}
-            <div className="relative h-48 w-full overflow-hidden bg-slate-200 border-b-2 border-[#2d2d2d]">
+            <div className="relative h-48 w-full overflow-hidden bg-slate-200 border-b-2 border-[#FFD9B8]">
               <img
                 src={item.image}
                 alt={item.title[language]}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="absolute top-4 left-4 bg-white border-2 border-[#2d2d2d] px-2.5 py-1 shadow-[2px_2px_0px_0px_#2d2d2d] flex items-center gap-1.5">
+              <div className="absolute top-4 left-4 bg-white border border-[#FFD9B8] px-2.5 py-1 shadow-[0_2px_8px_rgba(42,26,18,0.10)] flex items-center gap-1.5">
                 {getCategoryIcon(item.category)}
                 <span className="text-[10px] font-black text-art-text uppercase tracking-wide">
                   {getCategoryName(item.category)}
@@ -89,7 +89,7 @@ export const SightseeingGrid: React.FC<SightseeingGridProps> = ({ language, item
                 </p>
               </div>
 
-              <div className="border-t border-[#2d2d2d]/10 pt-3 flex flex-col gap-2">
+              <div className="border-t border-[#FFD9B8]/40 pt-3 flex flex-col gap-2">
                 <span className="text-[10px] uppercase font-mono font-bold text-art-text/50 tracking-wider">
                   {t('addressLabel', language)}
                 </span>

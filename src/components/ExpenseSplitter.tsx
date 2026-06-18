@@ -156,7 +156,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
 
       <div className="md:col-span-5 flex flex-col gap-6">
 
-        <div className="bg-[#2d2d2d] text-white p-6 shadow-[8px_8px_0px_0px_#FF6321] border-2 border-[#2d2d2d] rounded-none flex flex-col">
+        <div className="bg-[#2A1A12] text-white p-6 shadow-[8px_8px_0px_0px_#FF6321] border border-[#FFD9B8] rounded-2xl flex flex-col">
           <div className="flex justify-between items-start mb-4">
             <div>
               <span className="text-[10px] uppercase tracking-wider text-white/50 font-mono font-bold">{t('quickStats', language)}</span>
@@ -204,10 +204,10 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
           </div>
         </div>
 
-        <div className="bg-white border-2 border-[#2d2d2d] p-6 shadow-[5px_5px_0px_0px_#2d2d2d] rounded-none">
+        <div className="bg-white border border-[#FFD9B8] p-6 shadow-[5px_5px_0px_0px_#2d2d2d] rounded-2xl">
           <div className="flex items-center gap-2 mb-4">
             <Coins className="text-art-orange w-5 h-5 stroke-[2.5px]" />
-            <h3 className="font-display font-black uppercase text-lg text-[#2d2d2d]">{t('addExpenseBtn', language)}</h3>
+            <h3 className="font-display font-black uppercase text-lg text-[#2A1A12]">{t('addExpenseBtn', language)}</h3>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-xs md:text-sm">
@@ -222,7 +222,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t('expenseDescInput', language)}
-                className="w-full px-4 py-3 border-2 border-[#2d2d2d] text-[#2d2d2d] bg-white font-medium focus:outline-hidden"
+                className="w-full px-4 py-3 border border-[#FFD9B8] text-[#2A1A12] bg-white font-medium focus:outline-hidden"
               />
             </div>
 
@@ -240,7 +240,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
-                  className="w-full px-4 py-3 border-2 border-[#2d2d2d] text-[#2d2d2d] bg-white font-mono font-bold focus:outline-hidden"
+                  className="w-full px-4 py-3 border border-[#FFD9B8] text-[#2A1A12] bg-white font-mono font-bold focus:outline-hidden"
                 />
               </div>
 
@@ -252,7 +252,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                   id="expense-payer"
                   value={payer}
                   onChange={(e) => setPayer(e.target.value)}
-                  className="w-full px-3 py-3 border-2 border-[#2d2d2d] text-[#2d2d2d] bg-white font-bold focus:outline-hidden cursor-pointer"
+                  className="w-full px-3 py-3 border border-[#FFD9B8] text-[#2A1A12] bg-white font-bold focus:outline-hidden cursor-pointer"
                 >
                   {members.map(m => (
                     <option key={m.id} value={m.id}>
@@ -270,9 +270,9 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                   type="checkbox"
                   checked={useCustomSplit}
                   onChange={(e) => setUseCustomSplit(e.target.checked)}
-                  className="w-4 h-4 text-art-orange border-2 border-[#2d2d2d] focus:ring-0 rounded-none cursor-pointer"
+                  className="w-4 h-4 text-art-orange border border-[#FFD9B8] focus:ring-0 rounded-2xl cursor-pointer"
                 />
-                <span className="text-xs font-black uppercase tracking-wider text-[#2d2d2d]/85">
+                <span className="text-xs font-black uppercase tracking-wider text-[#2A1A12]/85">
                   {language === 'ca'
                     ? 'Dividir nomes entre algunes persones'
                     : language === 'en'
@@ -282,7 +282,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
               </label>
 
               {useCustomSplit && (
-                <div className="mt-3 p-3 bg-art-bg border-2 border-[#2d2d2d] rounded-none max-h-48 overflow-y-auto flex flex-col gap-1.5 animate-fadeIn">
+                <div className="mt-3 p-3 bg-art-bg border border-[#FFD9B8] rounded-2xl max-h-48 overflow-y-auto flex flex-col gap-1.5 animate-fadeIn">
                   <span className="text-[10px] text-art-text/50 font-mono font-bold uppercase tracking-wider mb-1 block">
                     {language === 'ca' ? 'Integrants afectats:' : language === 'en' ? 'Affected friends:' : 'Gente arrastra:'}
                   </span>
@@ -291,7 +291,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                       key={member.id}
                       type="button"
                       onClick={() => handleToggleSplitMember(member.id)}
-                      className={`flex items-center justify-between p-2 border-2 transition-all cursor-pointer ${splitBetween.includes(member.id) ? 'bg-[#ffebee] text-rose-700 border-[#2d2d2d] font-bold shadow-[2px_2px_0px_0px_#2d2d2d]' : 'bg-white border-transparent text-art-text/80 hover:bg-white hover:border-[#2d2d2d]'}`}
+                      className={`flex items-center justify-between p-2 border-2 transition-all cursor-pointer ${splitBetween.includes(member.id) ? 'bg-[#ffebee] text-rose-700 border-[#FFD9B8] font-bold shadow-[0_2px_8px_rgba(42,26,18,0.10)]' : 'bg-white border-transparent text-art-text/80 hover:bg-white hover:border-art-orange'}`}
                     >
                       <span className="flex items-center gap-2">
                         <span>{member.avatarUrl}</span>
@@ -307,7 +307,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
             </div>
 
             {submitError && (
-              <div className="flex items-start gap-2 p-3 bg-rose-50 border-2 border-rose-400 text-rose-700 text-xs font-medium rounded-none">
+              <div className="flex items-start gap-2 p-3 bg-rose-50 border-2 border-rose-400 text-rose-700 text-xs font-medium rounded-2xl">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{submitError}</span>
               </div>
@@ -316,7 +316,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full mt-2 py-3.5 px-4 border-2 border-[#2d2d2d] text-art-text font-display text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#2d2d2d] flex items-center justify-center gap-2 transition-all
+              className={`w-full mt-2 py-3.5 px-4 border border-[#FFD9B8] text-art-text font-display text-xs font-black uppercase tracking-wider shadow-[0_4px_12px_rgba(42,26,18,0.10)] flex items-center justify-center gap-2 transition-all
                 ${isSubmitting ? 'bg-art-yellow/50 cursor-not-allowed' : 'bg-art-yellow hover:bg-art-yellow/85 hover:translate-y-[-1px] cursor-pointer'}`}
             >
               <Plus className="w-4 h-4 stroke-[3px]" />
@@ -331,14 +331,14 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
 
       <div className="md:col-span-7 flex flex-col gap-6">
 
-        <div className="bg-white border-2 border-[#2d2d2d] p-6 shadow-[5px_5px_0px_0px_#2d2d2d] rounded-none">
+        <div className="bg-white border border-[#FFD9B8] p-6 shadow-[5px_5px_0px_0px_#2d2d2d] rounded-2xl">
           <div className="flex items-center gap-2 mb-4">
             <ArrowRightLeft className="text-art-orange w-5 h-5 stroke-[2.5px]" />
             <h3 className="font-display font-black uppercase text-lg text-art-text">{t('settlementDebts', language)}</h3>
           </div>
 
           {settlements.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center px-4 bg-emerald-50/50 border-2 border-dashed border-emerald-500/20 rounded-none">
+            <div className="flex flex-col items-center justify-center py-8 text-center px-4 bg-emerald-50/50 border-2 border-dashed border-emerald-500/20 rounded-2xl">
               <Sparkles className="text-emerald-500 w-10 h-10 mb-2" />
               <p className="text-sm font-black uppercase tracking-wider text-emerald-800">{t('noDebtsYet', language)}</p>
               <p className="text-xs text-emerald-600 mt-1 font-medium">
@@ -357,16 +357,16 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                 if (!debtorObj || !creditorObj) return null;
 
                 return (
-                  <div key={idx} className="flex items-center justify-between p-3.5 bg-white border-2 border-[#2d2d2d] rounded-none text-xs md:text-sm shadow-[3px_3px_0px_0px_#2d2d2d]">
+                  <div key={idx} className="flex items-center justify-between p-3.5 bg-white border border-[#FFD9B8] rounded-2xl text-xs md:text-sm shadow-[0_4px_12px_rgba(42,26,18,0.10)]">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="flex items-center gap-1 p-1 bg-art-bg rounded-none border border-[#2d2d2d]">
+                      <span className="flex items-center gap-1 p-1 bg-art-bg rounded-2xl border border-[#FFD9B8]">
                         <span>{debtorObj.avatarUrl}</span>
                         <span className="font-extrabold text-art-text">{debtorObj.name}</span>
                       </span>
                       <span className="text-xs text-art-text/50 px-1 font-black uppercase tracking-tight text-[10px]">
                         {t('debtOwesText', language)}
                       </span>
-                      <span className="flex items-center gap-1 p-1 bg-art-bg rounded-none border border-[#2d2d2d]">
+                      <span className="flex items-center gap-1 p-1 bg-art-bg rounded-2xl border border-[#FFD9B8]">
                         <span>{creditorObj.avatarUrl}</span>
                         <span className="font-extrabold text-art-text">{creditorObj.name}</span>
                       </span>
@@ -383,7 +383,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
           )}
         </div>
 
-        <div className="bg-white border-2 border-[#2d2d2d] p-6 shadow-[5px_5px_0px_0px_#2d2d2d] rounded-none flex-1 flex flex-col">
+        <div className="bg-white border border-[#FFD9B8] p-6 shadow-[5px_5px_0px_0px_#2d2d2d] rounded-2xl flex-1 flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-display font-black uppercase text-lg text-art-text">{t('recentExpenses', language)}</h3>
             {expenses.length > 0 && (
@@ -402,7 +402,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
           </div>
 
           {expenses.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-[#2d2d2d]/30 rounded-none p-6">
+            <div className="flex-1 flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-[#FFD9B8]/60 rounded-2xl p-6">
               <AlertCircle className="text-art-text/30 w-10 h-10 mb-2" />
               <p className="text-sm font-black uppercase tracking-wider text-art-text/60">{t('noExpensesYet', language)}</p>
             </div>
@@ -413,17 +413,17 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                 const hasCustomSplit = exp.splitBetween.length > 0;
 
                 return (
-                  <div key={exp.id} className="flex items-center justify-between p-3.5 bg-white border border-[#2d2d2d] rounded-none hover:bg-art-bg/30 transition-all text-xs md:text-sm group">
+                  <div key={exp.id} className="flex items-center justify-between p-3.5 bg-white border border-[#FFD9B8] rounded-2xl hover:bg-art-bg/30 transition-all text-xs md:text-sm group">
                     <div className="flex flex-col gap-1.5">
                       <span className="font-bold text-art-text font-display text-sm uppercase">{exp.description}</span>
                       <div className="flex items-center gap-2 text-art-text/50 font-mono text-[10px] sm:text-[11px]">
-                        <span className="bg-[#fdfaf2] px-2 py-0.5 rounded-none border border-[#2d2d2d] flex items-center gap-1 font-bold text-art-text">
+                        <span className="bg-[#FFF4E6] px-2 py-0.5 rounded-2xl border border-[#FFD9B8] flex items-center gap-1 font-bold text-art-text">
                           {payerObj ? `${payerObj.avatarUrl} ${payerObj.nickname || payerObj.name}` : ''}
                         </span>
                         <span>-</span>
                         <span>{exp.date}</span>
                         {hasCustomSplit && (
-                          <span className="text-white font-bold uppercase tracking-wider text-[9px] bg-art-blue px-1.5 py-0.5 rounded-none">
+                          <span className="text-white font-bold uppercase tracking-wider text-[9px] bg-art-blue px-1.5 py-0.5 rounded-2xl">
                             Custom ({exp.splitBetween.length} pax)
                           </span>
                         )}
@@ -436,7 +436,7 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                       <button
                         type="button"
                         onClick={() => onDeleteExpense(exp.id)}
-                        className="text-art-text/30 hover:text-rose-600 p-1.5 border border-transparent hover:border-[#2d2d2d] hover:bg-rose-50 transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        className="text-art-text/30 hover:text-rose-600 p-1.5 border border-transparent hover:border-art-orange hover:bg-rose-50 transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
                         title="Delete expense"
                       >
                         <Trash2 className="w-4 h-4" />

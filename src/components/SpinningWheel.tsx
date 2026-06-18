@@ -229,10 +229,10 @@ export const SpinningWheel: React.FC<SpinningWheelProps> = ({
             key={w.id}
             type="button"
             onClick={() => { setActiveWheelId(w.id); setWinner(null); closeEditor(); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 border-2 font-black uppercase text-xs transition-all cursor-pointer rounded-none select-none
+            className={`flex items-center gap-1.5 px-3 py-1.5 border-2 font-black uppercase text-xs transition-all cursor-pointer rounded-2xl select-none
               ${activeWheelId === w.id
-                ? 'bg-[#2d2d2d] text-white border-[#2d2d2d] shadow-[2px_2px_0px_0px_#FF6321]'
-                : 'bg-white text-art-text border-[#2d2d2d] hover:bg-[#fdfaf2]'}`}
+                ? 'bg-[#2A1A12] text-white border-[#FFD9B8] shadow-[0_2px_8px_rgba(255,90,31,0.25)]'
+                : 'bg-white text-art-text border-[#FFD9B8] hover:bg-[#FFF4E6]'}`}
           >
             <span>{w.emoji}</span>
             <span>{w.name}</span>
@@ -241,7 +241,7 @@ export const SpinningWheel: React.FC<SpinningWheelProps> = ({
         <button
           type="button"
           onClick={openCreate}
-          className="flex items-center gap-1 px-3 py-1.5 border-2 border-dashed border-[#2d2d2d]/40 font-black uppercase text-xs text-art-text/50 hover:border-[#2d2d2d] hover:text-art-text transition-all cursor-pointer rounded-none"
+          className="flex items-center gap-1 px-3 py-1.5 border-2 border-dashed border-[#FFD9B8]/40 font-black uppercase text-xs text-art-text/50 hover:border-art-orange hover:text-art-text transition-all cursor-pointer rounded-2xl"
         >
           <Plus className="w-3.5 h-3.5" />
           {lbl('Nova', 'New', 'Nueva')}
@@ -257,7 +257,7 @@ export const SpinningWheel: React.FC<SpinningWheelProps> = ({
               const w = customWheels.find(w => w.id === activeWheelId);
               if (w) openEdit(w);
             }}
-            className="flex items-center gap-1 px-2.5 py-1 border-2 border-[#2d2d2d] bg-white font-black uppercase text-[10px] text-art-text hover:bg-art-bg transition-all cursor-pointer shadow-[2px_2px_0px_0px_#2d2d2d]"
+            className="flex items-center gap-1 px-2.5 py-1 border border-[#FFD9B8] bg-white font-black uppercase text-[10px] text-art-text hover:bg-art-bg transition-all cursor-pointer shadow-[0_2px_8px_rgba(42,26,18,0.10)]"
           >
             <Pencil className="w-3 h-3" /> {lbl('Editar', 'Edit', 'Editar')}
           </button>
@@ -273,7 +273,7 @@ export const SpinningWheel: React.FC<SpinningWheelProps> = ({
 
       {/* Editor panel */}
       {editorMode !== 'none' && (
-        <div className="bg-white border-2 border-[#2d2d2d] shadow-[4px_4px_0px_0px_#2d2d2d] p-4 flex flex-col gap-3">
+        <div className="bg-white border border-[#FFD9B8] shadow-[0_4px_16px_rgba(42,26,18,0.12)] p-4 flex flex-col gap-3">
           <div className="flex justify-between items-center">
             <h3 className="font-display font-black uppercase text-sm text-art-text">
               {editorMode === 'create'
@@ -290,7 +290,7 @@ export const SpinningWheel: React.FC<SpinningWheelProps> = ({
             <select
               value={editorEmoji}
               onChange={e => setEditorEmoji(e.target.value)}
-              className="border-2 border-[#2d2d2d] bg-white text-base px-2 py-2 focus:outline-none cursor-pointer"
+              className="border border-[#FFD9B8] bg-white text-base px-2 py-2 focus:outline-none cursor-pointer"
             >
               {WHEEL_EMOJIS.map(em => <option key={em} value={em}>{em}</option>)}
             </select>
@@ -300,7 +300,7 @@ export const SpinningWheel: React.FC<SpinningWheelProps> = ({
               value={editorName}
               onChange={e => setEditorName(e.target.value)}
               maxLength={24}
-              className="flex-1 px-3 py-2 border-2 border-[#2d2d2d] font-bold text-sm text-art-text bg-white focus:outline-none focus:border-art-orange"
+              className="flex-1 px-3 py-2 border border-[#FFD9B8] font-bold text-sm text-art-text bg-white focus:outline-none focus:border-art-orange"
             />
           </div>
 
@@ -318,7 +318,7 @@ export const SpinningWheel: React.FC<SpinningWheelProps> = ({
                     placeholder={`${lbl('Opció', 'Option', 'Opción')} ${idx + 1}`}
                     value={item}
                     onChange={e => handleEditorItemChange(idx, e.target.value)}
-                    className="flex-1 px-2.5 py-1.5 border-2 border-[#2d2d2d]/30 focus:border-[#2d2d2d] font-medium text-xs text-art-text bg-white focus:outline-none"
+                    className="flex-1 px-2.5 py-1.5 border border-[#FFD9B8]/30 focus:border-[#FFD9B8] font-medium text-xs text-art-text bg-white focus:outline-none"
                   />
                   {editorItems.length > 2 && (
                     <button
@@ -338,7 +338,7 @@ export const SpinningWheel: React.FC<SpinningWheelProps> = ({
             type="button"
             onClick={handleSave}
             disabled={isSaving || !editorName.trim() || editorItems.filter(s => s.trim()).length < 2}
-            className="flex items-center justify-center gap-2 py-2.5 border-2 border-[#2d2d2d] bg-art-orange text-white font-black uppercase text-xs shadow-[3px_3px_0px_0px_#2d2d2d] hover:translate-y-[-1px] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            className="flex items-center justify-center gap-2 py-2.5 border border-[#FFD9B8] bg-art-orange text-white font-black uppercase text-xs shadow-[0_4px_12px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
           >
             <Check className="w-4 h-4" />
             {isSaving
@@ -349,12 +349,12 @@ export const SpinningWheel: React.FC<SpinningWheelProps> = ({
       )}
 
       {/* Wheel canvas */}
-      <div className="flex flex-col items-center gap-6 py-4 bg-white border-2 border-[#2d2d2d] shadow-[6px_6px_0px_0px_#2d2d2d] max-w-md mx-auto relative overflow-hidden w-full">
+      <div className="flex flex-col items-center gap-6 py-4 bg-white border border-[#FFD9B8] shadow-[0_6px_20px_rgba(42,26,18,0.14)] max-w-md mx-auto relative overflow-hidden w-full">
         <div className="absolute top-[24px] z-10 w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[22px] border-t-[#2d2d2d]" />
 
         <div className="relative flex items-center justify-center p-4">
           {items.length < 2 ? (
-            <div className="w-80 h-80 max-w-full flex items-center justify-center border-4 border-dashed border-[#2d2d2d]/20">
+            <div className="w-80 h-80 max-w-full flex items-center justify-center border-4 border-dashed border-[#FFD9B8]/50">
               <p className="text-center text-xs text-art-text/40 font-bold uppercase px-8">
                 {lbl('Afegeix almenys 2 opcions', 'Add at least 2 options', 'Añade al menos 2 opciones')}
               </p>
@@ -368,7 +368,7 @@ export const SpinningWheel: React.FC<SpinningWheelProps> = ({
           type="button"
           disabled={isSpinning || items.length < 2}
           onClick={spin}
-          className={`w-full max-w-xs py-4 px-6 border-2 border-[#2d2d2d] font-display text-sm font-black text-art-text shadow-[4px_4px_0px_0px_#2d2d2d] hover:shadow-[5px_5px_0px_0px_#2d2d2d] hover:translate-y-[-1px] transition-all uppercase tracking-wider select-none
+          className={`w-full max-w-xs py-4 px-6 border border-[#FFD9B8] font-display text-sm font-black text-art-text shadow-[0_4px_16px_rgba(42,26,18,0.12)] hover:shadow-[5px_5px_0px_0px_#2d2d2d] hover:translate-y-[-1px] transition-all uppercase tracking-wider select-none
             ${isSpinning || items.length < 2
               ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none hover:translate-y-0'
               : 'bg-art-yellow cursor-pointer'}`}
@@ -379,7 +379,7 @@ export const SpinningWheel: React.FC<SpinningWheelProps> = ({
         </button>
 
         {winner && (
-          <div className="mt-2 text-center px-6 py-4 bg-art-orange/10 border-2 border-[#2d2d2d] shadow-[3px_3px_0px_0px_#2d2d2d] w-[90%] animate-bounce">
+          <div className="mt-2 text-center px-6 py-4 bg-art-orange/10 border border-[#FFD9B8] shadow-[0_4px_12px_rgba(42,26,18,0.10)] w-[90%] animate-bounce">
             <p className="text-xs font-black text-art-orange tracking-wide uppercase">
               {lbl('La deessa de la sort dictamina:', 'The Goddess of Luck declares:', 'La diosa der fango dize:')}
             </p>

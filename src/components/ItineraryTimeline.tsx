@@ -184,13 +184,13 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-4 py-2">
 
       {/* Sub-tabs */}
-      <div className="flex border-b-4 border-[#2d2d2d] bg-white gap-1 p-1 select-none shadow-[2px_2px_0px_0px_#2d2d2d]">
+      <div className="flex border-b border-[#FFD9B8] bg-white gap-1 p-1 select-none shadow-[0_2px_8px_rgba(42,26,18,0.10)]">
         <button type="button" onClick={() => setActiveSubTab('calendar')}
-          className={`flex-1 py-2.5 text-center text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${activeSubTab === 'calendar' ? 'bg-art-orange text-white border-2 border-[#2d2d2d]' : 'text-art-text hover:bg-[#fdfaf2]'}`}>
+          className={`flex-1 py-2.5 text-center text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${activeSubTab === 'calendar' ? 'bg-art-orange text-white border border-[#FFD9B8]' : 'text-art-text hover:bg-[#FFF4E6]'}`}>
           {localT.subTabItinerary[language]}
         </button>
         <button type="button" onClick={() => setActiveSubTab('hogueras')}
-          className={`flex-1 py-2.5 text-center text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 ${activeSubTab === 'hogueras' ? 'bg-art-yellow text-art-text border-2 border-[#2d2d2d]' : 'text-art-text hover:bg-[#fdfaf2]'}`}>
+          className={`flex-1 py-2.5 text-center text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1 ${activeSubTab === 'hogueras' ? 'bg-art-yellow text-art-text border border-[#FFD9B8]' : 'text-art-text hover:bg-[#FFF4E6]'}`}>
           <Flame className="w-3.5 h-3.5 text-art-orange shrink-0" />
           {localT.subTabHogueras[language]}
         </button>
@@ -202,55 +202,57 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
           {/* ── Controls ── */}
           <div className="flex flex-col gap-2">
 
-            {/* Row 1: Day scroll + action buttons */}
-            <div className="flex items-center gap-2">
-              {/* Day strip — horizontal scroll, no wrap */}
-              <div className="flex items-center gap-1 overflow-x-auto flex-1 hide-scrollbar">
-                <button type="button" onClick={() => setSelectedDay('all')}
-                  className={`px-3 py-2 border-2 border-[#2d2d2d] text-xs font-black uppercase whitespace-nowrap cursor-pointer shrink-0 transition-all ${selectedDay === 'all' ? 'bg-[#2d2d2d] text-white' : 'bg-white text-art-text hover:bg-[#fdfaf2]'}`}>
-                  {language === 'ca' ? 'Tots' : language === 'en' ? 'All' : 'To\''}
+            {/* Row 1: Day buttons — wrap, no scroll */}
+            <div className="grid grid-cols-6 gap-1">
+              <button type="button" onClick={() => setSelectedDay('all')}
+                className={`py-2 border border-[#FFD9B8] text-[10px] font-black uppercase text-center cursor-pointer transition-all ${selectedDay === 'all' ? 'bg-art-garnet text-white' : 'bg-white text-art-text hover:bg-[#FFF0D9]'}`}>
+                {language === 'ca' ? 'Tots' : language === 'en' ? 'All' : "To'"}
+              </button>
+              {tripDays.map(td => (
+                <button key={td.date} type="button" onClick={() => setSelectedDay(td.date)}
+                  className={`py-2 border border-[#FFD9B8] text-[10px] font-black uppercase text-center cursor-pointer transition-all ${selectedDay === td.date ? 'bg-art-orange text-white' : 'bg-white text-art-text hover:bg-[#FFF4E6]'}`}>
+                  {td.label}
                 </button>
-                {tripDays.map(td => (
-                  <button key={td.date} type="button" onClick={() => setSelectedDay(td.date)}
-                    className={`px-3 py-2 border-2 border-[#2d2d2d] text-xs font-black uppercase whitespace-nowrap cursor-pointer shrink-0 transition-all ${selectedDay === td.date ? 'bg-art-orange text-white' : 'bg-white text-art-text hover:bg-[#fdfaf2]'}`}>
-                    {td.label}
-                  </button>
-                ))}
-              </div>
+              ))}
+            </div>
 
+            {/* Row 2: Filters + add plan */}
+            <div className="flex items-center gap-2">
               {/* Favorites toggle */}
               <button type="button" onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                className={`p-2 border-2 border-[#2d2d2d] shrink-0 transition-all cursor-pointer ${showFavoritesOnly ? 'bg-art-yellow text-art-text' : 'bg-white text-art-text/60 hover:text-art-text'}`}
+                className={`p-2 border border-[#FFD9B8] shrink-0 transition-all cursor-pointer ${showFavoritesOnly ? 'bg-art-yellow text-art-text' : 'bg-white text-art-text/60 hover:text-art-text'}`}
                 title={language === 'ca' ? 'Preferits' : language === 'en' ? 'Favorites' : 'Preferíos'}>
                 <Star className={`w-4 h-4 ${showFavoritesOnly ? 'fill-art-text' : ''}`} />
               </button>
 
               {/* Category filter toggle */}
               <button type="button" onClick={() => setShowCategoryFilter(!showCategoryFilter)}
-                className={`flex items-center gap-1 px-3 py-2 border-2 border-[#2d2d2d] text-xs font-black uppercase shrink-0 cursor-pointer transition-all ${selectedCategory !== 'all' ? 'bg-art-orange text-white' : 'bg-white text-art-text hover:bg-[#fdfaf2]'}`}>
+                className={`flex items-center gap-1 px-3 py-2 border border-[#FFD9B8] text-xs font-black uppercase shrink-0 cursor-pointer transition-all ${selectedCategory !== 'all' ? 'bg-art-orange text-white' : 'bg-white text-art-text hover:bg-[#FFF4E6]'}`}>
                 <Filter className="w-3 h-3" />
                 {localT.filterBtn[language]}
               </button>
 
+              <div className="flex-1" />
+
               {/* Add plan */}
               <button type="button" onClick={() => setShowAddForm(!showAddForm)}
-                className="flex items-center gap-1 px-3 py-2 border-2 border-[#2d2d2d] bg-art-yellow text-art-text font-black text-xs uppercase shrink-0 shadow-[2px_2px_0px_0px_#2d2d2d] hover:translate-y-[-1px] transition-all cursor-pointer">
+                className="flex items-center gap-1 px-3 py-2 border border-[#FFD9B8] bg-art-yellow text-art-text font-black text-xs uppercase shrink-0 shadow-[0_2px_8px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] transition-all cursor-pointer">
                 <Plus className="w-3.5 h-3.5 stroke-[3px]" />
                 {t('addPlanBtn', language)}
               </button>
             </div>
 
-            {/* Row 2: Category chips (collapsible) */}
+            {/* Row 3: Category chips (collapsible) */}
             {showCategoryFilter && (
               <div className="flex flex-wrap items-center gap-1.5 animate-fadeIn">
                 <button type="button" onClick={() => { setSelectedCategory('all'); setShowCategoryFilter(false); }}
-                  className={`px-2.5 py-1 border-2 border-[#2d2d2d] text-[10px] font-black uppercase cursor-pointer ${selectedCategory === 'all' ? 'bg-[#2d2d2d] text-white' : 'bg-white text-art-text hover:bg-[#fdfaf2]'}`}>
+                  className={`px-2.5 py-1 border border-[#FFD9B8] text-[10px] font-black uppercase cursor-pointer ${selectedCategory === 'all' ? 'bg-art-garnet text-white' : 'bg-white text-art-text hover:bg-[#FFF0D9]'}`}>
                   {localT.filterCategory[language]}
                 </button>
                 {PLAN_CATEGORIES.map(cat => (
                   <button key={cat.id} type="button"
                     onClick={() => { setSelectedCategory(selectedCategory === cat.id ? 'all' : cat.id); setShowCategoryFilter(false); }}
-                    className={`px-2.5 py-1 border-2 border-[#2d2d2d] text-[10px] font-bold cursor-pointer ${selectedCategory === cat.id ? 'bg-art-orange text-white' : 'bg-white text-art-text hover:bg-[#fdfaf2]'}`}>
+                    className={`px-2.5 py-1 border border-[#FFD9B8] text-[10px] font-bold cursor-pointer ${selectedCategory === cat.id ? 'bg-art-orange text-white' : 'bg-white text-art-text hover:bg-[#FFF4E6]'}`}>
                     {cat.label}
                   </button>
                 ))}
@@ -260,7 +262,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
 
           {/* Add form */}
           {showAddForm && (
-            <div className="bg-white border-2 border-[#2d2d2d] p-5 shadow-[4px_4px_0px_0px_#2d2d2d] border-t-8 border-t-art-orange animate-fadeIn">
+            <div className="bg-white border border-[#FFD9B8] p-5 shadow-[0_4px_16px_rgba(42,26,18,0.12)] border-t-4 border-t-art-garnet animate-fadeIn">
               <h3 className="font-display font-black uppercase text-sm text-art-text mb-4 flex items-center gap-2">
                 <Compass className="w-4 h-4 text-art-orange" />
                 {t('addPlanBtn', language)}
@@ -270,33 +272,33 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                   <label className="block font-black uppercase tracking-wider text-art-text/60 mb-1 text-[10px]">{t('planTitleField', language)}</label>
                   <input type="text" required value={title} onChange={e => setTitle(e.target.value)}
                     placeholder={language === 'ca' ? 'ex: Sopar al Port' : language === 'en' ? 'e.g.: Sunset beers' : 'ej: Cenita en er Puerto'}
-                    className="w-full px-3 py-2 border-2 border-[#2d2d2d] bg-white font-medium focus:outline-none focus:border-art-orange" />
+                    className="w-full px-3 py-2 border border-[#FFD9B8] bg-white font-medium focus:outline-none focus:border-art-orange" />
                 </div>
                 <div>
                   <label className="block font-black uppercase tracking-wider text-art-text/60 mb-1 text-[10px]">{t('planDescField', language)}</label>
                   <textarea required value={description} onChange={e => setDescription(e.target.value)} rows={2}
                     placeholder={language === 'ca' ? 'Explica la idea...' : language === 'en' ? 'Describe the plan...' : 'Cuéntale la movía...'}
-                    className="w-full px-3 py-2 border-2 border-[#2d2d2d] bg-white font-medium focus:outline-none focus:border-art-orange" />
+                    className="w-full px-3 py-2 border border-[#FFD9B8] bg-white font-medium focus:outline-none focus:border-art-orange" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block font-black uppercase tracking-wider text-art-text/60 mb-1 text-[10px]">{t('planDateField', language)}</label>
                     <select value={date} onChange={e => setDate(e.target.value)}
-                      className="w-full px-2 py-2 border-2 border-[#2d2d2d] bg-white font-bold focus:outline-none cursor-pointer">
+                      className="w-full px-2 py-2 border border-[#FFD9B8] bg-white font-bold focus:outline-none cursor-pointer">
                       {tripDays.map(td => <option key={td.date} value={td.date}>{td.full}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block font-black uppercase tracking-wider text-art-text/60 mb-1 text-[10px]">{t('planTimeField', language)}</label>
                     <input type="time" required value={time} onChange={e => setTime(e.target.value)}
-                      className="w-full px-2 py-2 border-2 border-[#2d2d2d] bg-white font-mono font-bold focus:outline-none" />
+                      className="w-full px-2 py-2 border border-[#FFD9B8] bg-white font-mono font-bold focus:outline-none" />
                   </div>
                 </div>
                 <div>
                   <label className="block font-black uppercase tracking-wider text-art-text/60 mb-1 text-[10px]">{t('planLocationField', language)}</label>
                   <input type="text" required value={location} onChange={e => setLocation(e.target.value)}
                     placeholder="ex: Playa del Postiguet"
-                    className="w-full px-3 py-2 border-2 border-[#2d2d2d] bg-white font-medium focus:outline-none focus:border-art-orange" />
+                    className="w-full px-3 py-2 border border-[#FFD9B8] bg-white font-medium focus:outline-none focus:border-art-orange" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -304,7 +306,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                       {language === 'ca' ? 'Categoria' : language === 'en' ? 'Category' : 'Tipo'}
                     </label>
                     <select value={category} onChange={e => setCategory(e.target.value)}
-                      className="w-full px-2 py-2 border-2 border-[#2d2d2d] bg-white font-bold focus:outline-none cursor-pointer text-xs">
+                      className="w-full px-2 py-2 border border-[#FFD9B8] bg-white font-bold focus:outline-none cursor-pointer text-xs">
                       <option value="">— Cap</option>
                       {PLAN_CATEGORIES.map(cat => <option key={cat.id} value={cat.label}>{cat.label}</option>)}
                     </select>
@@ -315,11 +317,11 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                     </label>
                     <input type="text" value={estimatedPrice} onChange={e => setEstimatedPrice(e.target.value)}
                       placeholder="ex: 15€/pp"
-                      className="w-full px-2 py-2 border-2 border-[#2d2d2d] bg-white font-medium focus:outline-none focus:border-art-orange" />
+                      className="w-full px-2 py-2 border border-[#FFD9B8] bg-white font-medium focus:outline-none focus:border-art-orange" />
                   </div>
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <div className={`w-4 h-4 border-2 border-[#2d2d2d] flex items-center justify-center shrink-0 ${requiresReservation ? 'bg-art-orange' : 'bg-white'}`}
+                  <div className={`w-4 h-4 border border-[#FFD9B8] flex items-center justify-center shrink-0 ${requiresReservation ? 'bg-art-orange' : 'bg-white'}`}
                     onClick={() => setRequiresReservation(!requiresReservation)}>
                     {requiresReservation && <Check className="w-3 h-3 text-white stroke-[3px]" />}
                   </div>
@@ -331,11 +333,11 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                 </label>
                 <div className="flex gap-2 justify-end pt-1">
                   <button type="button" onClick={() => setShowAddForm(false)}
-                    className="py-2 px-3 border-2 border-[#2d2d2d] bg-white text-art-text font-black uppercase text-[10px] cursor-pointer hover:bg-[#fdfaf2]">
+                    className="py-2 px-3 border border-[#FFD9B8] bg-white text-art-text font-black uppercase text-[10px] cursor-pointer hover:bg-[#FFF4E6]">
                     {t('cancelBtn', language)}
                   </button>
                   <button type="submit"
-                    className="py-2 px-4 border-2 border-[#2d2d2d] bg-art-orange text-white font-black uppercase text-[10px] shadow-[2px_2px_0px_0px_#2d2d2d] hover:translate-y-[-1px] transition-all cursor-pointer">
+                    className="py-2 px-4 border border-[#FFD9B8] bg-art-orange text-white font-black uppercase text-[10px] shadow-[0_2px_8px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] transition-all cursor-pointer">
                     {t('submitPlan', language)}
                   </button>
                 </div>
@@ -345,7 +347,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
 
           {/* Plan list */}
           {filteredPlans.length === 0 ? (
-            <div className="bg-white border-2 border-[#2d2d2d] shadow-[4px_4px_0px_0px_#2d2d2d] py-12 px-6 text-center flex flex-col items-center">
+            <div className="bg-white border border-[#FFD9B8] shadow-[0_4px_16px_rgba(42,26,18,0.12)] py-12 px-6 text-center flex flex-col items-center">
               <Calendar className="text-art-orange/30 w-10 h-10 mb-3 animate-bounce" />
               <h3 className="text-art-text font-display font-black uppercase text-sm">
                 {showFavoritesOnly
@@ -363,22 +365,22 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                 const isExpanded = expandedIds.has(plan.id);
 
                 return (
-                  <div key={plan.id} className={`bg-white border-2 border-[#2d2d2d] shadow-[3px_3px_0px_0px_#2d2d2d] transition-all animate-fadeIn ${plan.isHogueraEvent ? 'border-l-4 border-l-art-orange' : ''}`}>
+                  <div key={plan.id} className={`bg-white border border-[#FFD9B8] shadow-[0_4px_12px_rgba(42,26,18,0.10)] transition-all animate-fadeIn ${plan.isHogueraEvent ? 'border-l-4 border-l-art-orange' : ''}`}>
 
                     {/* ── Compact row (always visible) ── */}
                     <button
                       type="button"
                       onClick={() => toggleExpand(plan.id)}
-                      className="w-full flex items-center gap-3 px-3 py-3 text-left cursor-pointer hover:bg-[#fdfaf2] transition-colors"
+                      className="w-full flex items-center gap-3 px-3 py-3 text-left cursor-pointer hover:bg-[#FFF4E6] transition-colors"
                     >
                       {/* Time badge */}
-                      <span className="bg-[#2d2d2d] text-white font-mono font-bold px-2 py-1 text-[10px] shrink-0 flex items-center gap-1">
+                      <span className="bg-[#2A1A12] text-white font-mono font-bold px-2 py-1 text-[10px] shrink-0 flex items-center gap-1">
                         <Clock className="w-3 h-3" />{plan.time}
                       </span>
 
                       {/* Date (only when showing all days) */}
                       {selectedDay === 'all' && (
-                        <span className="hidden sm:flex border border-[#2d2d2d]/30 text-art-text/60 font-mono font-bold px-1.5 py-0.5 text-[9px] shrink-0 items-center gap-0.5 leading-none">
+                        <span className="hidden sm:flex border border-[#FFD9B8]/60 text-art-text/60 font-mono font-bold px-1.5 py-0.5 text-[9px] shrink-0 items-center gap-0.5 leading-none">
                           <Calendar className="w-2.5 h-2.5" />
                           {tripDays.find(d => d.date === plan.date)?.label ?? plan.date}
                         </span>
@@ -403,12 +405,12 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
 
                     {/* ── Expanded detail ── */}
                     {isExpanded && (
-                      <div className="px-3 pb-4 flex flex-col gap-3 border-t-2 border-[#2d2d2d]/10 animate-fadeIn">
+                      <div className="px-3 pb-4 flex flex-col gap-3 border-t-2 border-[#FFD9B8]/40 animate-fadeIn">
 
                         {/* Badges row */}
                         <div className="flex flex-wrap gap-1.5 pt-2">
                           {selectedDay === 'all' && (
-                            <span className="bg-white border border-[#2d2d2d]/40 text-art-text/60 font-mono font-bold px-2 py-0.5 text-[9px] flex items-center gap-1">
+                            <span className="bg-white border border-[#FFD9B8]/40 text-art-text/60 font-mono font-bold px-2 py-0.5 text-[9px] flex items-center gap-1">
                               <Calendar className="w-3 h-3" />{getDayName(plan.date)}
                             </span>
                           )}
@@ -418,7 +420,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                             </span>
                           )}
                           {plan.category && (
-                            <span className="bg-white border border-[#2d2d2d]/30 text-art-text/60 font-mono font-bold px-2 py-0.5 text-[9px]">{plan.category}</span>
+                            <span className="bg-white border border-[#FFD9B8]/60 text-art-text/60 font-mono font-bold px-2 py-0.5 text-[9px]">{plan.category}</span>
                           )}
                           {plan.requiresReservation && (
                             <span className="bg-amber-50 border border-amber-400 text-amber-700 font-mono font-bold px-2 py-0.5 text-[9px] flex items-center gap-1">
@@ -447,20 +449,20 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                         )}
 
                         {/* Action buttons + voters */}
-                        <div className="flex items-center justify-between gap-3 pt-1 border-t border-[#2d2d2d]/10">
+                        <div className="flex items-center justify-between gap-3 pt-1 border-t border-[#FFD9B8]/40">
                           <div className="flex items-center gap-2">
                             <button type="button" onClick={() => onVotePlan(plan.id)}
-                              className={`flex items-center gap-1.5 py-1.5 px-3 border-2 border-[#2d2d2d] text-xs font-black uppercase cursor-pointer transition-all ${hasVoted ? 'bg-rose-50 text-rose-600 shadow-[1px_1px_0px_0px_#2d2d2d]' : 'bg-white text-art-text hover:bg-[#fdfaf2] shadow-[1px_1px_0px_0px_#2d2d2d]'}`}>
+                              className={`flex items-center gap-1.5 py-1.5 px-3 border border-[#FFD9B8] text-xs font-black uppercase cursor-pointer transition-all ${hasVoted ? 'bg-rose-50 text-rose-600 shadow-[0_1px_4px_rgba(42,26,18,0.08)]' : 'bg-white text-art-text hover:bg-[#FFF4E6] shadow-[0_1px_4px_rgba(42,26,18,0.08)]'}`}>
                               <Heart className={`w-3.5 h-3.5 ${hasVoted ? 'fill-rose-500 text-rose-500' : ''}`} />
                               {planVotes.length} {language === 'ca' ? 'Vots' : language === 'en' ? 'Votes' : "Voto'"}
                             </button>
                             <button type="button" onClick={() => onToggleFavoritePlan(plan.id)}
-                              className={`p-1.5 border-2 border-[#2d2d2d] cursor-pointer transition-all ${isFavorited ? 'bg-[#fffde7] text-art-yellow shadow-[1px_1px_0px_0px_#2d2d2d]' : 'bg-white text-art-text/50 hover:text-art-text shadow-[1px_1px_0px_0px_#2d2d2d]'}`}>
+                              className={`p-1.5 border border-[#FFD9B8] cursor-pointer transition-all ${isFavorited ? 'bg-[#fffde7] text-art-yellow shadow-[0_1px_4px_rgba(42,26,18,0.08)]' : 'bg-white text-art-text/50 hover:text-art-text shadow-[0_1px_4px_rgba(42,26,18,0.08)]'}`}>
                               <Star className={`w-4 h-4 ${isFavorited ? 'fill-art-yellow text-art-yellow' : ''}`} />
                             </button>
                             <button type="button"
                               onClick={() => { if (window.confirm(language === 'ca' ? 'Eliminar?' : language === 'en' ? 'Delete?' : 'Borrarlo?')) onDeletePlan(plan.id); }}
-                              className="p-1.5 border-2 border-[#2d2d2d] bg-white text-art-text/30 hover:text-red-500 hover:border-red-300 cursor-pointer transition-all shadow-[1px_1px_0px_0px_#2d2d2d]">
+                              className="p-1.5 border border-[#FFD9B8] bg-white text-art-text/30 hover:text-red-500 hover:border-red-300 cursor-pointer transition-all shadow-[0_1px_4px_rgba(42,26,18,0.08)]">
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -472,7 +474,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                                 const u = members.find(m => m.id === vid);
                                 return u ? (
                                   <span key={vid} title={u.nickname || u.name}
-                                    className="w-5 h-5 border border-[#2d2d2d] rounded-full bg-white flex items-center justify-center text-xs">
+                                    className="w-5 h-5 border border-[#FFD9B8] rounded-full bg-white flex items-center justify-center text-xs">
                                     {u.avatarUrl}
                                   </span>
                                 ) : null;
@@ -493,7 +495,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
       {/* HOGUERAS TAB */}
       {activeSubTab === 'hogueras' && (
         <div className="flex flex-col gap-5 animate-fadeIn">
-          <div className="bg-[#2d2d2d] border-2 border-[#2d2d2d] p-5 text-white shadow-[4px_4px_0px_0px_#FF6321]">
+          <div className="bg-[#2A1A12] border border-[#FFD9B8] p-5 text-white shadow-[0_4px_12px_rgba(255,90,31,0.25)]">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="text-art-yellow w-4 h-4 shrink-0" />
               <h3 className="font-display font-black uppercase text-sm text-art-yellow">
@@ -521,12 +523,12 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
               const isFavorited = planFavorites.includes(activeMemberId);
 
               return (
-                <div key={template.id} className={`p-4 bg-white border-2 border-[#2d2d2d] shadow-[3px_3px_0px_0px_#2d2d2d] flex flex-col gap-3 transition-all ${isImported ? 'border-t-4 border-t-art-orange' : ''}`}>
+                <div key={template.id} className={`p-4 bg-white border border-[#FFD9B8] shadow-[0_4px_12px_rgba(42,26,18,0.10)] flex flex-col gap-3 transition-all ${isImported ? 'border-t-4 border-t-art-orange' : ''}`}>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="bg-[#2d2d2d] text-white font-mono font-bold px-2 py-0.5 text-[9px] flex items-center gap-1">
+                    <span className="bg-[#2A1A12] text-white font-mono font-bold px-2 py-0.5 text-[9px] flex items-center gap-1">
                       <Calendar className="w-3 h-3" />{getDayName(template.date)}
                     </span>
-                    <span className="border border-[#2d2d2d]/40 text-art-text/60 font-mono font-bold px-2 py-0.5 text-[9px] flex items-center gap-1">
+                    <span className="border border-[#FFD9B8]/40 text-art-text/60 font-mono font-bold px-2 py-0.5 text-[9px] flex items-center gap-1">
                       <Clock className="w-3 h-3 text-art-orange" />{template.time}
                     </span>
                     {isImported && (
@@ -544,15 +546,15 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                     <span className="truncate max-w-[200px]">{template.location}</span>
                   </span>
 
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#2d2d2d]/10">
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#FFD9B8]/40">
                     {isImported && importedPlan ? (
                       <div className="flex items-center gap-1.5">
                         <button type="button" onClick={() => onVotePlan(importedPlan.id)}
-                          className={`flex items-center gap-1 py-1 px-2.5 border border-[#2d2d2d] text-[10px] font-black cursor-pointer ${hasVoted ? 'bg-rose-50 text-rose-600' : 'bg-white text-art-text hover:bg-[#fdfaf2]'}`}>
+                          className={`flex items-center gap-1 py-1 px-2.5 border border-[#FFD9B8] text-[10px] font-black cursor-pointer ${hasVoted ? 'bg-rose-50 text-rose-600' : 'bg-white text-art-text hover:bg-[#FFF4E6]'}`}>
                           <Heart className={`w-3 h-3 ${hasVoted ? 'fill-rose-500 text-rose-500' : ''}`} />{planVotes.length}
                         </button>
                         <button type="button" onClick={() => onToggleFavoritePlan(importedPlan.id)}
-                          className={`p-1 border border-[#2d2d2d] cursor-pointer ${isFavorited ? 'bg-[#fffde7]' : 'bg-white hover:bg-[#fdfaf2]'}`}>
+                          className={`p-1 border border-[#FFD9B8] cursor-pointer ${isFavorited ? 'bg-[#fffde7]' : 'bg-white hover:bg-[#FFF4E6]'}`}>
                           <Star className={`w-3.5 h-3.5 ${isFavorited ? 'fill-art-yellow text-art-yellow' : 'text-art-text/40'}`} />
                         </button>
                       </div>
@@ -564,7 +566,7 @@ export const ItineraryTimeline: React.FC<ItineraryTimelineProps> = ({
                       </div>
                     ) : (
                       <button type="button" onClick={() => handlesImportHoguera(template)}
-                        className="py-1.5 px-3 border-2 border-[#2d2d2d] bg-art-orange text-white text-[10px] font-black uppercase shadow-[2px_2px_0px_0px_#2d2d2d] hover:translate-y-[-1px] cursor-pointer transition-all flex items-center gap-1">
+                        className="py-1.5 px-3 border border-[#FFD9B8] bg-art-orange text-white text-[10px] font-black uppercase shadow-[0_2px_8px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] cursor-pointer transition-all flex items-center gap-1">
                         <Plus className="w-3.5 h-3.5 stroke-[3px]" />{localT.addToCalendar[language]}
                       </button>
                     )}
