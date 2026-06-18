@@ -809,52 +809,63 @@ export default function App() {
   // 5b. Not logged in → Google login screen
   if (!firebaseUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#FF5A1F] via-[#E0290B] to-[#2A1A12] flex flex-col justify-center items-center p-6 relative overflow-hidden" id="login-screen-overlay">
+      <div className="min-h-screen bg-[#2A1A12] flex flex-col justify-center items-center p-6 relative overflow-hidden" id="login-screen-overlay">
 
-        <div className="w-full max-w-md bg-white p-8 text-art-text shadow-[0_16px_48px_rgba(42,26,18,0.25)] relative z-10 rounded-3xl text-center border border-white/80">
+        {/* Decorative blobs */}
+        <div className="absolute top-0 left-0 w-72 h-72 rounded-full bg-[#FF5A1F]/20 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full bg-[#E0290B]/15 blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-[#FFD23F]/5 blur-3xl pointer-events-none" />
 
-          <div className="flex justify-center mb-3">
-            <Sunset className="w-14 h-14 text-art-orange animate-bounce" />
+        {/* Language switcher — outside card, on dark bg so white text is visible */}
+        <div className="flex gap-1 mb-6 bg-white/10 p-1 rounded-2xl z-10">
+          <button type="button" onClick={() => setLanguage('ca')} className={`px-3 py-1.5 text-[10px] font-black uppercase transition-all cursor-pointer rounded-xl ${language === 'ca' ? 'bg-[#FFD23F] text-[#2A1A12]' : 'text-white/50 hover:text-white'}`}>Català</button>
+          <button type="button" onClick={() => setLanguage('en')} className={`px-3 py-1.5 text-[10px] font-black uppercase transition-all cursor-pointer rounded-xl ${language === 'en' ? 'bg-[#FFD23F] text-[#2A1A12]' : 'text-white/50 hover:text-white'}`}>English</button>
+          <button type="button" onClick={() => setLanguage('an')} className={`px-3 py-1.5 text-[10px] font-black uppercase transition-all cursor-pointer rounded-xl ${language === 'an' ? 'bg-[#FFD23F] text-[#2A1A12]' : 'text-white/50 hover:text-white'}`}>Andaluz</button>
+        </div>
+
+        <div className="w-full max-w-sm bg-[#FFF4E6] border border-[#FFD9B8] p-8 shadow-[0_24px_64px_rgba(0,0,0,0.40)] relative z-10 rounded-3xl text-center">
+
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF5A1F] to-[#E0290B] flex items-center justify-center shadow-[0_4px_16px_rgba(224,41,11,0.40)]">
+              <span className="text-3xl">🔥</span>
+            </div>
           </div>
 
-          <h1 className="text-3xl md:text-4xl font-display font-black tracking-tight text-art-text uppercase">
-            Alacant 2026 🌴
+          <h1 className="text-3xl md:text-4xl font-display font-black tracking-tight text-art-text uppercase leading-none">
+            Alacant 2026
           </h1>
-          <p className="text-[#2A1A12]/70 font-semibold text-xs sm:text-sm mt-2 max-w-xs mx-auto">
-            El niu d'operacions col·lectiu dels amics per les Hogueras.
+          <p className="text-[#2A1A12]/50 font-mono text-[10px] uppercase tracking-widest mt-2">
+            Hogueres · 22–26 juny
+          </p>
+          <p className="text-[#2A1A12]/60 font-semibold text-xs mt-3 max-w-xs mx-auto leading-relaxed">
+            {language === 'ca' ? "El niu d'operacions col·lectiu dels amics per les Hogueras." : language === 'en' ? "Your squad hub for the Hogueras trip." : "El cuartel general de la peña pa las Hogueras."}
           </p>
 
-          {/* Language switcher */}
-          <div className="flex gap-2 justify-center mt-5 mb-8 bg-white/20 backdrop-blur-sm p-1.5 rounded-2xl w-fit mx-auto text-[10px]">
-            <button type="button" onClick={() => setLanguage('ca')} className={`px-2.5 py-1 font-bold uppercase transition-all cursor-pointer ${language === 'ca' ? 'bg-white text-art-garnet rounded-xl' : 'text-white/80 hover:text-white'}`}>Català</button>
-            <button type="button" onClick={() => setLanguage('en')} className={`px-2.5 py-1 font-bold uppercase transition-all cursor-pointer ${language === 'en' ? 'bg-white text-art-garnet rounded-xl' : 'text-white/80 hover:text-white'}`}>English</button>
-            <button type="button" onClick={() => setLanguage('an')} className={`px-2.5 py-1 font-bold uppercase transition-all cursor-pointer ${language === 'an' ? 'bg-white text-art-garnet rounded-xl' : 'text-white/80 hover:text-white'}`}>Andaluz</button>
+          <div className="mt-6 mb-1">
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={authLoading}
+              className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-[#2A1A12] text-white rounded-2xl shadow-[0_4px_16px_rgba(42,26,18,0.30)] hover:bg-[#3D2518] hover:translate-y-[-2px] active:translate-y-0 transition-all cursor-pointer font-black text-sm tracking-wide disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {authLoading ? (
+                <span className="animate-spin text-xl">⏳</span>
+              ) : (
+                <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+              )}
+              <span>
+                {language === 'ca' ? 'Entrar amb Google' : language === 'en' ? 'Sign in with Google' : 'Entrar con Google'}
+              </span>
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={authLoading}
-            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-art-orange text-white rounded-2xl shadow-[0_4px_16px_rgba(255,90,31,0.40)] hover:bg-art-garnet hover:translate-y-[-2px] active:translate-y-0 transition-all cursor-pointer font-black uppercase text-sm tracking-wider disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {authLoading ? (
-              <span className="animate-spin text-xl">⏳</span>
-            ) : (
-              <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-              </svg>
-            )}
-            <span>
-              {language === 'ca' ? 'Entrar amb Google' : language === 'en' ? 'Sign in with Google' : 'Entrá con Google'}
-            </span>
-            <LogIn className="w-4 h-4" />
-          </button>
-
-          <p className="text-[10px] text-art-text/40 mt-5 font-mono">
-            {language === 'ca' ? 'Només per als amics del grup. Gratuït i sense anuncis.' : language === 'en' ? 'Squad members only. Free & ad-free.' : 'Solo pa\' la peña. Gratis y sin publicidá.'}
+          <p className="text-[9px] text-art-text/30 mt-4 font-mono uppercase tracking-wider">
+            {language === 'ca' ? 'Només per als amics del grup · Gratuït' : language === 'en' ? 'Squad members only · Free' : 'Solo pa la peña · Gratis'}
           </p>
         </div>
       </div>
