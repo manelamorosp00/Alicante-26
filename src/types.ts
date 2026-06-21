@@ -161,7 +161,6 @@ export interface ShoppingItem {
 }
 
 // ── Recipes ────────────────────────────────────────────────
-export type MealType = 'dinar' | 'sopar' | 'picnic';
 
 export interface Recipe {
   id: string;

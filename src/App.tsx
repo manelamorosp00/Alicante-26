@@ -21,6 +21,7 @@ import { ShoppingList } from './components/ShoppingList';
 import { Receptes } from './components/Receptes';
 import { PackingList } from './components/PackingList';
 import { TutorialOverlay } from './components/TutorialOverlay';
+import { SupportWidget, CandleDoc } from './components/SupportWidget';
 import { Recomanacions } from './components/Recomanacions';
 import { db, auth, googleProvider } from './firebase';
 import { signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, browserSessionPersistence, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -97,6 +98,7 @@ export default function App() {
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
   const [packingItems, setPackingItems]     = useState<PackingItem[]>([]);
   const [customRecipes, setCustomRecipes]  = useState<Recipe[]>([]);
+  const [supportCandles, setSupportCandles] = useState<CandleDoc[]>([]);
   const [alacantTemp, setAlacantTemp] = useState<number | null>(null);
   const [weatherCode, setWeatherCode] = useState<number | null>(null);
 
@@ -215,23 +217,35 @@ export default function App() {
   };
 
   // Step 2: user confirms their profile → link to Google + maybe show tutorial
+  const [profileSetupError, setProfileSetupError] = useState<string | null>(null);
+  const [profileSetupLoading, setProfileSetupLoading] = useState(false);
+
   const handleConfirmProfileSetup = async () => {
     if (!firebaseUser || !pendingMemberId) return;
+    setProfileSetupLoading(true);
+    setProfileSetupError(null);
     try {
-      await updateDoc(doc(db, 'members', pendingMemberId), {
+      await setDoc(doc(db, 'members', pendingMemberId), {
         googleUid: firebaseUser.uid,
         avatarUrl: setupAvatar,
         nickname: setupNickname.trim() || setupNickname,
         role: setupRole,
-      });
+      }, { merge: true });
       setActiveMemberId(pendingMemberId);
       setShowProfileSetup(false);
+      setProfileSetupLoading(false);
       const tutorialKey = `alicante_tutorial_done_${pendingMemberId}`;
       if (!localStorage.getItem(tutorialKey)) {
         setShowTutorial(true);
       }
-    } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `members/${pendingMemberId}`);
+    } catch (err: any) {
+      console.error('[profile] updateDoc failed:', err?.code, err?.message);
+      setProfileSetupLoading(false);
+      setProfileSetupError(
+        err?.code === 'permission-denied'
+          ? 'Sense permís. Tanca sessió i torna a entrar.'
+          : `Error en guardar (${err?.code ?? 'unknown'}). Comprova la connexió.`
+      );
     }
   };
 
@@ -372,6 +386,13 @@ export default function App() {
       setCustomRecipes(list);
     }, (error) => console.warn('[recipes] Firestore error:', error.message));
 
+    // 10. Sync support candles (temporary widget)
+    const unsubCandles = onSnapshot(collection(db, 'supportCandles'), (snapshot) => {
+      const list: CandleDoc[] = [];
+      snapshot.forEach((d) => list.push(d.data() as CandleDoc));
+      setSupportCandles(list);
+    }, (error) => console.warn('[supportCandles] Firestore error:', error.message));
+
     return () => {
       unsubMembers();
       unsubExpenses();
@@ -382,6 +403,7 @@ export default function App() {
       unsubShopping();
       unsubPacking();
       unsubRecipes();
+      unsubCandles();
     };
   }, [firebaseUser]);
 
@@ -532,6 +554,20 @@ export default function App() {
       const { deleteDoc } = await import('firebase/firestore');
       await deleteDoc(doc(db, 'recipes', id));
     } catch (err) { console.error('[recipes] delete error:', err); }
+  };
+
+  // ── Support candles ────────────────────────────────────────────────────────
+  const handleToggleCandle = async (memberId: string, currentlyLit: boolean) => {
+    const newLit = !currentlyLit;
+    const litAt = newLit ? Date.now() : null;
+    setSupportCandles(prev => {
+      const exists = prev.find(c => c.memberId === memberId);
+      if (exists) return prev.map(c => c.memberId === memberId ? { ...c, lit: newLit, litAt } : c);
+      return [...prev, { memberId, lit: newLit, litAt }];
+    });
+    try {
+      await setDoc(doc(db, 'supportCandles', memberId), { memberId, lit: newLit, litAt });
+    } catch (err) { console.error('[candles] toggle error:', err); }
   };
 
   // ── Recipes: add ingredients to shopping ────────────────────────────────────
@@ -1022,21 +1058,30 @@ export default function App() {
               </select>
             </div>
 
+            {/* Error message */}
+            {profileSetupError && (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-xs text-red-700 font-semibold text-center">
+                ⚠️ {profileSetupError}
+              </div>
+            )}
+
             {/* Actions */}
             <div className="flex gap-3 pt-1">
               <button
                 type="button"
                 onClick={() => { setShowProfileSetup(false); setShowWhoAreYou(true); }}
-                className="flex-1 py-3 border border-[#FFD9B8] font-black uppercase text-xs text-art-text/60 hover:text-art-text hover:bg-[#FFF4E6] transition-all cursor-pointer rounded-2xl"
+                disabled={profileSetupLoading}
+                className="flex-1 py-3 border border-[#FFD9B8] font-black uppercase text-xs text-art-text/60 hover:text-art-text hover:bg-[#FFF4E6] transition-all cursor-pointer rounded-2xl disabled:opacity-40"
               >
                 {language === 'ca' ? '← Enrere' : language === 'en' ? '← Back' : '← Atrás'}
               </button>
               <button
                 type="button"
                 onClick={handleConfirmProfileSetup}
-                className="flex-2 flex-grow py-3 border border-[#FFD9B8] bg-art-orange text-white font-black uppercase text-xs shadow-[0_4px_12px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] transition-all cursor-pointer rounded-2xl flex items-center justify-center gap-2"
+                disabled={profileSetupLoading}
+                className="flex-2 flex-grow py-3 border border-[#FFD9B8] bg-art-orange text-white font-black uppercase text-xs shadow-[0_4px_12px_rgba(42,26,18,0.10)] hover:translate-y-[-1px] transition-all cursor-pointer rounded-2xl flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
               >
-                ✓ {language === 'ca' ? 'Confirmar i entrar' : language === 'en' ? 'Confirm & Enter' : 'Confirmá y entrar'}
+                {profileSetupLoading ? '⏳' : '✓'} {language === 'ca' ? 'Confirmar i entrar' : language === 'en' ? 'Confirm & Enter' : 'Confirmá y entrar'}
               </button>
             </div>
           </div>
@@ -1147,6 +1192,15 @@ export default function App() {
           {/* 1. DASHBOARD VIEW */}
           {activeTab === 'dashboard' && (
             <div className="flex flex-col gap-4 animate-fadeIn" id="dashboard-view-panel">
+
+              {/* ── SUPPORT WIDGET (temporal) ──────────────────────────────────── */}
+              <SupportWidget
+                language={language}
+                members={members}
+                activeMemberId={activeMemberId}
+                candles={supportCandles}
+                onToggleCandle={handleToggleCandle}
+              />
 
               {/* ── WEATHER HERO ──────────────────────────────────────────────── */}
               <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FF5A1F] via-[#E0290B] to-[#2A1A12] p-5 shadow-[0_8px_32px_rgba(224,41,11,0.35)]">
