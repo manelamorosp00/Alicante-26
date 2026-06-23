@@ -22,6 +22,7 @@ import { Receptes } from './components/Receptes';
 import { PackingList } from './components/PackingList';
 import { TutorialOverlay } from './components/TutorialOverlay';
 import { SupportWidget, CandleDoc } from './components/SupportWidget';
+import { PalrukiWidget } from './components/PalrukiWidget';
 import { Recomanacions } from './components/Recomanacions';
 import { db, auth, googleProvider } from './firebase';
 import { signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, browserSessionPersistence, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -1201,6 +1202,9 @@ export default function App() {
                 candles={supportCandles}
                 onToggleCandle={handleToggleCandle}
               />
+
+              {/* ── PALRUKI WIDGET ────────────────────────────────────────────── */}
+              <PalrukiWidget language={language} />
 
               {/* ── WEATHER HERO ──────────────────────────────────────────────── */}
               <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FF5A1F] via-[#E0290B] to-[#2A1A12] p-5 shadow-[0_8px_32px_rgba(224,41,11,0.35)]">
