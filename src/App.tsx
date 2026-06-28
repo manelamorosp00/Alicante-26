@@ -23,6 +23,7 @@ import { PackingList } from './components/PackingList';
 import { TutorialOverlay } from './components/TutorialOverlay';
 import { SupportWidget, CandleDoc } from './components/SupportWidget';
 import { PalrukiWidget } from './components/PalrukiWidget';
+import { PaidDebt } from './components/ExpenseSplitter';
 import { Recomanacions } from './components/Recomanacions';
 import { db, auth, googleProvider } from './firebase';
 import { signInWithPopup, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence, browserSessionPersistence, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -100,6 +101,7 @@ export default function App() {
   const [packingItems, setPackingItems]     = useState<PackingItem[]>([]);
   const [customRecipes, setCustomRecipes]  = useState<Recipe[]>([]);
   const [supportCandles, setSupportCandles] = useState<CandleDoc[]>([]);
+  const [paidDebts, setPaidDebts] = useState<PaidDebt[]>([]);
   const [alacantTemp, setAlacantTemp] = useState<number | null>(null);
   const [weatherCode, setWeatherCode] = useState<number | null>(null);
 
@@ -394,6 +396,12 @@ export default function App() {
       setSupportCandles(list);
     }, (error) => console.warn('[supportCandles] Firestore error:', error.message));
 
+    const unsubPaidDebts = onSnapshot(collection(db, 'paidDebts'), (snapshot) => {
+      const list: PaidDebt[] = [];
+      snapshot.forEach((d) => list.push(d.data() as PaidDebt));
+      setPaidDebts(list);
+    }, (error) => console.warn('[paidDebts] Firestore error:', error.message));
+
     return () => {
       unsubMembers();
       unsubExpenses();
@@ -405,6 +413,7 @@ export default function App() {
       unsubPacking();
       unsubRecipes();
       unsubCandles();
+      unsubPaidDebts();
     };
   }, [firebaseUser]);
 
@@ -569,6 +578,20 @@ export default function App() {
     try {
       await setDoc(doc(db, 'supportCandles', memberId), { memberId, lit: newLit, litAt });
     } catch (err) { console.error('[candles] toggle error:', err); }
+  };
+
+  const handleTogglePaidDebt = async (from: string, to: string, currentlyPaid: boolean) => {
+    const key = `${from}_${to}`;
+    const newPaid = !currentlyPaid;
+    const paidAt = newPaid ? Date.now() : null;
+    setPaidDebts(prev => {
+      const exists = prev.find(d => d.key === key);
+      if (exists) return prev.map(d => d.key === key ? { ...d, paid: newPaid, paidAt } : d);
+      return [...prev, { key, from, to, paid: newPaid, paidAt }];
+    });
+    try {
+      await setDoc(doc(db, 'paidDebts', key), { key, from, to, paid: newPaid, paidAt });
+    } catch (err) { console.error('[paidDebts] toggle error:', err); }
   };
 
   // ── Recipes: add ingredients to shopping ────────────────────────────────────
@@ -1474,9 +1497,11 @@ export default function App() {
                 members={members}
                 expenses={expenses}
                 activeMemberId={activeMemberId}
+                paidDebts={paidDebts}
                 onAddExpense={handleAddExpense}
                 onDeleteExpense={handleDeleteExpense}
                 onResetExpenses={handleResetExpenses}
+                onTogglePaidDebt={handleTogglePaidDebt}
               />
             </div>
           )}

@@ -3,14 +3,24 @@ import { Language, Member, Expense } from '../types';
 import { t } from '../translations';
 import { Trash2, Plus, AlertCircle, Sparkles, Coins, ArrowRightLeft } from 'lucide-react';
 
+export interface PaidDebt {
+  key: string; // \`\${from}_\${to}\`
+  from: string;
+  to: string;
+  paid: boolean;
+  paidAt: number | null;
+}
+
 interface ExpenseSplitterProps {
   language: Language;
   members: Member[];
   expenses: Expense[];
   activeMemberId: string;
+  paidDebts: PaidDebt[];
   onAddExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
   onDeleteExpense: (id: string) => void;
   onResetExpenses: () => void;
+  onTogglePaidDebt: (from: string, to: string, currentlyPaid: boolean) => void;
 }
 
 export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
@@ -18,6 +28,8 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
   members,
   expenses,
   activeMemberId,
+  paidDebts,
+  onTogglePaidDebt,
   onAddExpense,
   onDeleteExpense,
   onResetExpenses,
@@ -356,26 +368,50 @@ export const ExpenseSplitter: React.FC<ExpenseSplitterProps> = ({
                 const creditorObj = members.find(m => m.id === tx.to);
                 if (!debtorObj || !creditorObj) return null;
 
+                const debtKey = `${tx.from}_${tx.to}`;
+                const isPaid = paidDebts.find(d => d.key === debtKey)?.paid ?? false;
+
                 return (
-                  <div key={idx} className="flex items-center justify-between p-3.5 bg-white border border-[#FFD9B8] rounded-2xl text-xs md:text-sm shadow-[0_4px_12px_rgba(42,26,18,0.10)]">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="flex items-center gap-1 p-1 bg-art-bg rounded-2xl border border-[#FFD9B8]">
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3.5 border rounded-2xl text-xs md:text-sm shadow-[0_4px_12px_rgba(42,26,18,0.06)] transition-all duration-300"
+                    style={isPaid
+                      ? { background: '#f0fdf4', borderColor: '#86efac' }
+                      : { background: 'white', borderColor: '#FFD9B8' }
+                    }
+                  >
+                    <div className="flex flex-wrap items-center gap-1.5 flex-1 min-w-0">
+                      <span className={`flex items-center gap-1 p-1 rounded-2xl border ${isPaid ? 'border-green-200 bg-green-50' : 'bg-art-bg border-[#FFD9B8]'}`}>
                         <span>{debtorObj.avatarUrl}</span>
-                        <span className="font-extrabold text-art-text">{debtorObj.name}</span>
+                        <span className={`font-extrabold ${isPaid ? 'line-through text-art-text/40' : 'text-art-text'}`}>{debtorObj.name}</span>
                       </span>
                       <span className="text-xs text-art-text/50 px-1 font-black uppercase tracking-tight text-[10px]">
                         {t('debtOwesText', language)}
                       </span>
-                      <span className="flex items-center gap-1 p-1 bg-art-bg rounded-2xl border border-[#FFD9B8]">
+                      <span className={`flex items-center gap-1 p-1 rounded-2xl border ${isPaid ? 'border-green-200 bg-green-50' : 'bg-art-bg border-[#FFD9B8]'}`}>
                         <span>{creditorObj.avatarUrl}</span>
-                        <span className="font-extrabold text-art-text">{creditorObj.name}</span>
+                        <span className={`font-extrabold ${isPaid ? 'line-through text-art-text/40' : 'text-art-text'}`}>{creditorObj.name}</span>
+                      </span>
+                      <span className={`font-mono font-black whitespace-nowrap text-sm ${isPaid ? 'line-through text-art-text/30' : 'text-art-orange'}`}>
+                        {tx.amount.toFixed(2)} €
                       </span>
                     </div>
-                    <div className="text-right">
-                      <span className="font-mono text-base font-black text-art-orange whitespace-nowrap">
-                        {tx.amount.toFixed(2)} EUR
-                      </span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onTogglePaidDebt(tx.from, tx.to, isPaid)}
+                      title={isPaid
+                        ? (language === 'ca' ? 'Marcar com a pendent' : language === 'en' ? 'Mark as unpaid' : 'Marcar como pendiente')
+                        : (language === 'ca' ? 'Marcar com a pagat' : language === 'en' ? 'Mark as paid' : 'Marcar como pagado')
+                      }
+                      className="shrink-0 ml-2 w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all cursor-pointer active:scale-90"
+                      style={isPaid
+                        ? { borderColor: '#22c55e', background: '#22c55e', color: 'white' }
+                        : { borderColor: '#FFD9B8', background: 'white', color: 'rgba(42,26,18,0.3)' }
+                      }
+                      aria-label={isPaid ? 'Pagat' : 'Marcar com a pagat'}
+                    >
+                      {isPaid ? '✓' : '○'}
+                    </button>
                   </div>
                 );
               })}
